@@ -9,9 +9,21 @@
       margin: 20px;
       background-color: #f5f5f5;
     }
-    h1, h2, p {
-      text-align: center;
+    h1, h2, h3, p {
       color: #333;
+    }
+    #introduction, #usageInstructions {
+      width: 90%;
+      max-width: 800px;
+      margin: 20px auto;
+      background-color: #fff;
+      padding: 15px;
+      border: 1px solid #ccc;
+      line-height: 1.6;
+      text-align: justify;
+    }
+    #introduction h2, #usageInstructions h3 {
+      text-align: center;
     }
     #noteContainer {
       width: 90%;
@@ -74,13 +86,37 @@
       background-color: #f0ad4e;
       color: #fff;
     }
+    blockquote {
+      font-style: italic;
+      background: #f9f9f9;
+      border-left: 5px solid #ccc;
+      padding: 10px;
+      margin: 10px 0;
+    }
   </style>
 </head>
 <body>
   <h1>ICD Code Repair Simulator with Cosine Similarity Analysis</h1>
-  <p>
-    This simulator demonstrates a cosine similarity analysis of patient notes. The note is broken into individual lines, and for each line the simulator computes similarity scores against a repository of candidate ICD codes and their descriptions. The overall scores for each candidate are then tallied, simulating how one might compare individual aspects of the note with the overall content to suggest the best ICD code.
-  </p>
+  
+  <div id="introduction">
+    <h2>Introduction</h2>
+    <p>
+      In our modern society, where every detail is meant to be recorded with precision, the fallibility of man continues to cast a long shadow. Within the sterile corridors of hospitals, human error creeps into patient records—manifesting as slightly flawed ICD codes that distort the true condition of a patient. Such errors, though seemingly trivial, have the power to warp a diagnosis, much like a misprinted word can alter the meaning of an entire text.
+    </p>
+    <p>
+      Against this backdrop of inherent imperfection, our simulator emerges as a cold, mechanical sentinel. It scrutinizes each patient note with unyielding logic—using cosine similarity analysis akin to the impersonal calculations of TF/IDF—to parse each line and compare it against a repository of candidate ICD codes and descriptions. Every nuance is measured as if by a calculating bureaucracy, indifferent to the chaos of human error.
+    </p>
+    <p>
+      Yet, even as this artificial intelligence corrects and validates with clinical precision, there lingers a moral counterweight—a reminder that behind every number lies a human life. The system’s ethical oversight ensures that when a corrected code suggests potential complications, the case is flagged for further review, affirming that, in the end, truth and patient welfare must prevail.
+    </p>
+  </div>
+  
+  <div id="usageInstructions">
+    <h3>How to Use the Simulator</h3>
+    <p>
+      To begin, select one of the provided patient note examples by clicking on the corresponding button, or enter/edit your own patient note in the text area. Once your note is ready, click the <strong>Analyze Cosine Similarity</strong> button to run the simulation. The simulator will split the note into individual lines, compute a cosine similarity score for each candidate ICD code, and display the scores in a table along with overall candidate scores. When finished, click the <strong>Reset Simulation</strong> button to clear the analysis and restore the default note.
+    </p>
+  </div>
   
   <div id="noteContainer">
     <h2>Patient Note</h2>
@@ -93,7 +129,7 @@
     <textarea id="doctorNote" rows="10" style="width: 100%; font-size: 14px;"></textarea>
     <div style="text-align: center;">
       <button id="analyzeBtn">Analyze Cosine Similarity</button>
-      <button id="resetBtn">Reset</button>
+      <button id="resetBtn">Reset Simulation</button>
     </div>
   </div>
   
@@ -122,7 +158,7 @@ The pain began suddenly 45 minutes ago and has persisted.
 He has a history of previous myocardial infarctions in the family and is a long-time smoker.
 This critical presentation may require immediate intervention.`;
 
-    // Set a default patient note (we'll use the low complexity note as the default)
+    // Set a default patient note (using the low complexity note as the default)
     const defaultNote = patientNote1;
     document.getElementById("doctorNote").value = defaultNote;
     
@@ -146,16 +182,13 @@ This critical presentation may require immediate intervention.`;
     ];
     
     // This function simulates a cosine similarity score between 0 and 1.
-    // In a real system, you would compute the cosine similarity between two vectors.
     function simulateCosineSimilarity(text, candidate) {
-      // For simulation, we'll return a pseudo-random number seeded by the length of the text and candidate code char codes.
       let seed = text.length;
       for (let i = 0; i < candidate.code.length; i++) {
         seed += candidate.code.charCodeAt(i);
       }
-      // Create a pseudo-random value between 0 and 1 based on the seed
       let x = Math.sin(seed) * 10000;
-      return Math.abs(x - Math.floor(x)); // returns fractional part
+      return Math.abs(x - Math.floor(x));
     }
     
     // Function to analyze the note
@@ -187,7 +220,6 @@ This critical presentation may require immediate intervention.`;
         html += `<tr><td>${index + 1}</td><td>${line}</td>`;
         candidates.forEach(candidate => {
           const score = simulateCosineSimilarity(line, candidate);
-          // Add this score to the overall score (we simply sum them)
           overallScores[candidate.code] += score;
           html += `<td>${score.toFixed(3)}</td>`;
         });
@@ -216,7 +248,7 @@ This critical presentation may require immediate intervention.`;
       document.getElementById("analysisOutput").innerHTML = html;
     }
     
-    // Reset function to clear the analysis results and repopulate the note with default text.
+    // Reset function to clear the analysis results and repopulate with the default note.
     function resetAnalysis() {
       document.getElementById("analysisOutput").innerHTML = "";
       document.getElementById("doctorNote").value = defaultNote;
