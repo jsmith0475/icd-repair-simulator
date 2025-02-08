@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ICD Code Repair Simulator with AMI Agent Fix & Neuro Agent Note</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f5f5f5;
+    }
+    h1, h2, h3, p {
+      color: #333;
+    }
+    #introduction {
+      width: 90%;
+      max-width: 800px;
+      margin: 20px auto;
+      background-color: #fff;
+      padding: 15px;
+      border: 1px solid #ccc;
+      line-height: 1.6;
+      text-align: justify;
+    }
+    #columnDescriptions {
+      width: 90%;
+      max-width: 800px;
+      margin: 20px auto;
+      background-color: #fff;
+      padding: 15px;
+      border: 1px solid #ccc;
+    }
+    #columnDescriptions ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    #columnDescriptions li {
+      text-align: left;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+    table {
+      width: 90%;
+      border-collapse: collapse;
+      margin: 20px auto;
+      background-color: #fff;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #eaeaea;
+    }
+    .rejected {
+      color: #d9534f;
+      font-weight: bold;
+    }
+    .repaired {
+      color: #5cb85c;
+      font-weight: bold;
+    }
+    /* Highlight active record during EMR simulation */
+    .active {
+      background-color: #ffffcc;
+    }
+    /* Style for highlighted key information from the patient note */
+    .highlight {
+      background-color: yellow;
+      font-weight: bold;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px 5px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+    }
+    #stepBtn {
+      background-color: #5bc0de;
+      color: #fff;
+    }
+    #resetBtn {
+      background-color: #f0ad4e;
+      color: #fff;
+    }
+    #log, #emrPanel {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 20px auto;
+      width: 90%;
+      max-width: 800px;
+      background-color: #fff;
+      overflow-y: auto;
+    }
+    #log {
+      height: 150px;
+    }
+    #emrPanel {
+      min-height: 150px;
+    }
+    blockquote {
+      font-style: italic;
+      background: #f9f9f9;
+      border-left: 5px solid #ccc;
+      padding: 10px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>ICD Code Repair Simulator</h1>
+  
+  <div id="introduction">
+    <h2>Introduction</h2>
+    <p>
+      In our modern society, where every detail is meant to be recorded with precision, the fallibility of man continues to cast a long shadow. Within the sterile halls of hospitals, human error creeps into patient records, manifesting as slightly flawed ICD codes. These mistakes, though seemingly trivial, can distort the truth of a patient's condition and lead to consequences both unforeseen and dire.
+    </p>
+    <p>
+      To counter this, our system steps in like an unyielding, mechanical sentinel. An artificial machine intelligence, cold and methodical, scrutinizes each record with a precision reminiscent of a calculating bureaucracy. It employs the tools of cosine similarity and classification—techniques as impersonal and relentless as those found in the algorithms of modern data science—to identify and validate every code.
+    </p>
+    <p>
+      Yet, amid this rigorous, almost industrial quest for accuracy, there remains another voice—a moral, ethical counterweight. The Neuro Agent is this voice, a guardian of the principle that "patients over profits." It examines the corrected codes and, when a potential complication is revealed, it issues a somber warning: the error is not merely a technical oversight, but one that carries ethical weight. A short note is attached, a small testament to the fact that behind every statistic lies a human life.
+    </p>
+    <p>
+      As you navigate this simulator, you will see a record’s original, flawed ICD code—accompanied by its description—laid bare. Through a step‐by‐step process, this error is exposed, scrutinized, and finally replaced with a corrected code. The column labeled "AMI Agent Fix" confirms the repair, while "Neuro Agent Note" may bear a brief yet potent reminder of the ethical stakes at hand. In this world, as in ours, truth must be pursued, even when it is obscured by human imperfection.
+    </p>
+  </div>
+  
+  <div id="columnDescriptions">
+    <h3>Column Descriptions</h3>
+    <ul>
+      <li><strong>Patient Name:</strong> The name of the patient.</li>
+      <li><strong>Old ICD Code:</strong> The erroneous ICD code as originally recorded, along with its description.</li>
+      <li><strong>New ICD Code &amp; Description:</strong> The proposed corrected ICD code, accompanied by its description.</li>
+      <li><strong>AMI Agent Fix:</strong> An artificial machine intelligence agent that employs cosine similarity and classification techniques (akin to tf/idf) to identify and validate ICD codes based on both the granular details and the overall record.</li>
+      <li><strong>Neuro Agent Note:</strong> A moral and ethical agent that evaluates the implications of switching codes, guided by the principle "patients over profits." When the corrected code suggests potential complications, this column carries a brief note explaining why the case should be forwarded to the attending physician.</li>
+    </ul>
+  </div>
+  
+  <!-- Patient Records Table -->
+  <table id="recordsTable">
+    <thead>
+      <tr>
+        <th>Patient Name</th>
+        <th>Old ICD Code</th>
+        <th>New ICD Code &amp; Description</th>
+        <th>AMI Agent Fix</th>
+        <th>Neuro Agent Note</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Table rows generated by JavaScript -->
+    </tbody>
+  </table>
+  
+  <!-- Simulation Control Buttons -->
+  <div style="text-align: center;">
+    <button id="stepBtn">Step</button>
+    <button id="resetBtn">Reset Simulation</button>
+  </div>
+  
+  <!-- Simulation Log -->
+  <h2>Simulation Log</h2>
+  <div id="log"></div>
+  
+  <!-- Simulated EMR Panel -->
+  <h2>Simulated EMR - Doctor's Notes</h2>
+  <div id="emrPanel">
+    <p>EMR Simulation panel ready.</p>
+  </div>
+  
+  <script>
+    /***** Data Setup *****/
+    // Each record now uses a slightly erroneous ICD code.
+    const initialRecords = [
+      { name: "John Doe",    code: "R00.0", status: "Rejected" },
+      { name: "Jane Smith",  code: "I10.1", status: "Rejected" },
+      { name: "Bob Johnson", code: "E11.9", status: "Rejected" },
+      { name: "Alice Brown", code: "K21.8", status: "Rejected" }
+    ];
+
+    // Correction mapping: maps erroneous ICD codes to the correct ones.
+    const icdCorrections = {
+      "R00.0": "R00.2",
+      "I10.1": "I10",
+      "E11.9": "E11.65",
+      "K21.8": "K21.9"
+    };
+
+    // Mapping of the corrected ICD codes to text descriptions.
+    const icdDescriptions = {
+      "R00.2": "Palpitations",
+      "I10": "Essential (primary) hypertension",
+      "E11.65": "Type 2 diabetes mellitus with hyperglycemia",
+      "K21.9": "Gastro-esophageal reflux disease without esophagitis"
+    };
+
+    // Mapping of the erroneous ICD codes to their (erroneous) descriptions.
+    const erroneousDescriptions = {
+      "R00.0": "Unspecified abnormal heartbeat",
+      "I10.1": "Mild variant of hypertension",
+      "E11.9": "Diabetes, unspecified variant",
+      "K21.8": "Atypical reflux disease"
+    };
+
+    // Array of simulated doctor's notes (pn_history) examples.
+    const doctorNotes = [
+      `17-year-old male, has come to the student health clinic complaining of heart pounding. His mother has given verbal consent for a history, physical examination, and treatment.
+-began 2-3 months ago, sudden, intermittent for 2 days (lasting 3-4 min), worsening, non-alleviating/aggravating.
+-Associated with dyspnea on exertion and at rest, stressed out about school.
+-Reports feeling like his heart is jumping out of his chest.
+-ROS: denies chest pain, diaphoresis, weight loss, chills, fever, nausea, vomiting, pedal edema.
+-PMH: none; Meds: aderol (from a friend); NKDA.
+-FH: father had MI recently; mother has thyroid disease.
+-SH: non-smoker, marijuana 5-6 months ago, 3 beers on the weekend, basketball at school.
+-SH: no STD.`,
+      `17 yo male with recurrent palpitations for the past 3 months lasting about 3-4 min. It happened about 5-6 times since the beginning. One time during a basketball game two days ago he experienced lightheadedness, pressure in the chest, and difficulty catching his breath—but no fainting. During the episodes, he reported no sweating, diarrhea, heat intolerance, or weight loss. Has tried aderol to better concentrate, received from his roommate.`,
+      `Dillon Cleveland is a 17 y.o. male patient with no significant PMH who presents with complaints of heart pounding. This has been going on for a few months and happens once or twice a month. He cannot think of any triggers, and it has occurred both with activity and at rest. Occasionally, it is accompanied by chest pressure (but not pain) at the center of his chest. On one occasion, he experienced chest pressure, lightheadedness, and shortness of breath for 10 minutes with a pounding heart.
+      
+Otherwise, he has not had shortness of breath, chest pain, or anxiety.
+Medication: adderall twice a week as a study aid (not prescribed).
+FH: mother - thyroid disease, father - heart attack at age 52, both living.
+SH: no smoking; 3-4 drinks on weekends; marijuana once recently, no other recreational drugs.`,
+      `a 17 yo m c/o palpitation started 3 months ago; 
+NOTHING IMPROVES OR EXACERBATES THE SYMPTOMS ACCORDING TO HIM; IT CAN HAPPEN ANY TIME; MAY TAKE A FEW MINUTES; LAST TIME HAPPENED 2 DAYS AGO DURING PLAYING A GAME AND IT WAS ASSOCIATED WITH RETROSTERNAL PRESSURE-LIKE DISCOMFORT; AND HE FELT LIGHTHEADED. BUT HE DID NOT LOSE CONSCIOUSNESS OR FALL.
+NOT ASSOCIATED WITH NAUSEA, VOMITING, HEADACHE, ABDOMINAL PAIN, OR CHANGES IN URINATION/BOWEL HABITS; NO TREMOR OR SKIN/HAIR CHANGE OR INTOLERANCE.
+  
+PMH: NONE.  
+PSH: NONE.  
+MEDS: ADEROL TO STAY AWAKE.  
+HOSP: NONE.  
+FH: MOTHER HAS THYROID DISEASE; FATHER HAS CAD (diagnosed 1 year ago).  
+SH: NO SMOKING; DRINKS ON WEEKENDS; ONE-TIME USE OF MARIJUANA.`
+    ];
+
+    /***** Simulation State *****/
+    let simulationState = {
+      recordsToProcess: [],
+      currentRecordIndex: 0,
+      currentStep: 0 // 0: review, 1: identify error, 2: update record, 3: confirm repair
+    };
+
+    /***** Helper Function: Highlight Key Patient Note Information *****/
+    function highlightNote(note) {
+      // Define keywords that support ICD code repair.
+      const keywords = ["palpitation", "heart pounding", "chest pressure", "lightheaded", "shortness of breath"];
+      let highlightedNote = note;
+      keywords.forEach(keyword => {
+        const regex = new RegExp(`(${keyword})`, 'gi');
+        highlightedNote = highlightedNote.replace(regex, '<span class="highlight">$1</span>');
+      });
+      return highlightedNote;
+    }
+
+    /***** Functions *****/
+    // Populate the table with patient records.
+    function populateTable() {
+      const tbody = document.querySelector("#recordsTable tbody");
+      tbody.innerHTML = "";
+      let doctorNoteIndex = 0;
+      initialRecords.forEach(record => {
+        const row = document.createElement("tr");
+        // Store the raw erroneous ICD code in a data attribute.
+        row.dataset.oldcode = record.code;
+        // Create a row with five columns:
+        // 1) Patient Name, 2) Old ICD Code with description,
+        // 3) New ICD Code & Description (initially blank),
+        // 4) AMI Agent Fix (initially showing the record's status),
+        // 5) Neuro Agent Note (initially blank).
+        row.innerHTML = `
+          <td>${record.name}</td>
+          <td>${record.code} (${erroneousDescriptions[record.code] || "Description not available"})</td>
+          <td class="new-code"></td>
+          <td class="${record.status.toLowerCase()}">${record.status}</td>
+          <td class="neuro-note"></td>
+        `;
+        // For records with "Rejected" status, attach a simulated doctor's note.
+        if (record.status === "Rejected") {
+          const note = doctorNotes[doctorNoteIndex % doctorNotes.length];
+          doctorNoteIndex++;
+          row.dataset.note = note;
+        }
+        tbody.appendChild(row);
+      });
+    }
+
+    // Log messages in the simulation log panel.
+    function logMessage(message) {
+      const logDiv = document.getElementById("log");
+      const time = new Date().toLocaleTimeString();
+      logDiv.innerHTML += `<p>[${time}] ${message}</p>`;
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    // Generate the new ICD code string with description.
+    // Returns an object with 'code' and 'fullString'
+    function getNewICDCode(oldCode) {
+      let newCode;
+      if (icdCorrections.hasOwnProperty(oldCode)) {
+        newCode = icdCorrections[oldCode];
+      } else {
+        newCode = oldCode + " - Corrected";
+      }
+      const description = icdDescriptions[newCode] || "Description not available";
+      return { code: newCode, fullString: `${newCode} (${description})` };
+    }
+
+    // Step-by-step EMR simulation.
+    function advanceStep() {
+      if (simulationState.currentRecordIndex >= simulationState.recordsToProcess.length) {
+        logMessage("All records have been processed via the EMR step-by-step simulation.");
+        const emrPanel = document.getElementById("emrPanel");
+        emrPanel.innerHTML += `<p><em>All records processed.</em></p>`;
+        return;
+      }
+      const currentRow = simulationState.recordsToProcess[simulationState.currentRecordIndex];
+      const patientName = currentRow.cells[0].innerText;
+      const oldCode = currentRow.dataset.oldcode;
+      const status = currentRow.cells[3].innerText;
+      const emrPanel = document.getElementById("emrPanel");
+      const doctorNoteRaw = currentRow.dataset.note || "No doctor's note available.";
+      const doctorNoteFormatted = doctorNoteRaw.replace(/\n/g, '<br>');
+      const highlightedNote = highlightNote(doctorNoteFormatted);
+
+      switch(simulationState.currentStep) {
+        case 0:
+          // Step 1: Review record.
+          emrPanel.innerHTML = `<p>Reviewing record for <strong>${patientName}</strong>:</p>
+          <p>Old ICD Code: <strong>${oldCode} (${erroneousDescriptions[oldCode] || "Description not available"})</strong> | AMI Agent Fix: <strong>${status}</strong></p>
+          <p><strong>Doctor's Note:</strong></p>
+          <blockquote>${highlightedNote}</blockquote>`;
+          currentRow.classList.add("active");
+          logMessage(`EMR: Reviewing record for ${patientName}.`);
+          simulationState.currentStep++;
+          break;
+        case 1:
+          // Step 2: Identify error (includes bad code and its description).
+          emrPanel.innerHTML = `<p>Identified issue: The ICD code for <strong>${patientName}</strong> is rejected (Bad Code: <strong>${oldCode} (${erroneousDescriptions[oldCode] || "Description not available"})</strong>).<br>
+          The highlighted note details support the need for repair.</p>`;
+          logMessage(`EMR: Rejected ICD code (${oldCode}) noted for ${patientName}.`);
+          simulationState.currentStep++;
+          break;
+        case 2:
+          // Step 3: Update record.
+          const result = getNewICDCode(oldCode);
+          currentRow.cells[2].innerText = result.fullString;
+          currentRow.cells[3].innerText = "Repaired";
+          currentRow.cells[3].classList.remove("rejected");
+          currentRow.cells[3].classList.add("repaired");
+          // Determine if the corrected code indicates potential complications.
+          // In this simulation, we assume that codes "I10" and "E11.65" require escalation.
+          const complicationCodes = ["I10", "E11.65"];
+          const complicationNotes = {
+            "I10": "Potential uncontrolled hypertension; further evaluation needed.",
+            "E11.65": "Hyperglycemia may indicate uncontrolled diabetes; further assessment recommended."
+          };
+          if (complicationCodes.includes(result.code)) {
+            currentRow.cells[4].innerText = "Forward to Attending Physician: " + (complicationNotes[result.code] || "Potential complication.");
+          } else {
+            currentRow.cells[4].innerText = "None";
+          }
+          emrPanel.innerHTML = `<p>Doctor updates the record for <strong>${patientName}</strong>:</p>
+          <p>New Proposed ICD Code: <strong>${result.fullString}</strong></p>`;
+          logMessage(`EMR: Updated ICD code for ${patientName}.`);
+          simulationState.currentStep++;
+          break;
+        case 3:
+          // Step 4: Confirm repair.
+          emrPanel.innerHTML = `<p>Final review for <strong>${patientName}</strong> complete. Record status is now <strong>Repaired</strong>.</p>`;
+          logMessage(`EMR: Final review complete for ${patientName}.`);
+          currentRow.classList.remove("active");
+          simulationState.currentRecordIndex++;
+          simulationState.currentStep = 0;
+          if (simulationState.currentRecordIndex < simulationState.recordsToProcess.length) {
+            const nextPatient = simulationState.recordsToProcess[simulationState.currentRecordIndex].cells[0].innerText;
+            logMessage(`EMR: Ready to process record for ${nextPatient}.`);
+          }
+          break;
+      }
+    }
+
+    // Reset the simulation.
+    function resetSimulation() {
+      populateTable();
+      document.getElementById("log").innerHTML = "";
+      document.getElementById("emrPanel").innerHTML = "<p>EMR Simulation panel ready.</p>";
+      logMessage("Simulation has been reset.");
+      simulationState = {
+        recordsToProcess: [],
+        currentRecordIndex: 0,
+        currentStep: 0
+      };
+      const tbodyRows = Array.from(document.querySelectorAll("#recordsTable tbody tr"));
+      // Filter rows where the AMI Agent Fix (cell index 3) initially shows "Rejected"
+      simulationState.recordsToProcess = tbodyRows.filter(row => row.cells[3].innerText === "Rejected");
+    }
+
+    /***** Event Listeners *****/
+    document.getElementById("stepBtn").addEventListener("click", advanceStep);
+    document.getElementById("resetBtn").addEventListener("click", resetSimulation);
+
+    // Initialize simulation on page load.
+    populateTable();
+    resetSimulation();
+  </script>
+</body>
+</html>
