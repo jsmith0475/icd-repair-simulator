@@ -12,7 +12,7 @@
     h1, h2, h3, p {
       color: #333;
     }
-    #introduction {
+    #introduction, #usageInstructions, #columnDescriptions {
       width: 90%;
       max-width: 800px;
       margin: 20px auto;
@@ -21,14 +21,6 @@
       border: 1px solid #ccc;
       line-height: 1.6;
       text-align: justify;
-    }
-    #columnDescriptions {
-      width: 90%;
-      max-width: 800px;
-      margin: 20px auto;
-      background-color: #fff;
-      padding: 15px;
-      border: 1px solid #ccc;
     }
     #columnDescriptions ul {
       list-style-type: none;
@@ -119,13 +111,20 @@
       In our modern society, where every detail is meant to be recorded with precision, the fallibility of man continues to cast a long shadow. Within the sterile halls of hospitals, human error creeps into patient records, manifesting as slightly flawed ICD codes. These mistakes, though seemingly trivial, can distort the truth of a patient's condition and lead to consequences both unforeseen and dire.
     </p>
     <p>
-      To counter this, our system steps in like an unyielding, mechanical sentinel. An artificial machine intelligence, cold and methodical, scrutinizes each record with a precision reminiscent of a calculating bureaucracy. It employs the tools of cosine similarity and classification—techniques as impersonal and relentless as those found in the algorithms of modern data science—to identify and validate every code.
+      To counter this, our system steps in like an unyielding, mechanical sentinel. An artificial machine intelligence, cold and methodical, scrutinizes each record with a precision reminiscent of a calculating bureaucracy. It employs the tools of cosine similarity and classification—techniques as impersonal and relentless as those found in modern data science—to identify and validate every code.
     </p>
     <p>
-      Yet, amid this rigorous, almost industrial quest for accuracy, there remains another voice—a moral, ethical counterweight. The Neuro Agent is this voice, a guardian of the principle that "patients over profits." It examines the corrected codes and, when a potential complication is revealed, it issues a somber warning: the error is not merely a technical oversight, but one that carries ethical weight. A short note is attached, a small testament to the fact that behind every statistic lies a human life.
+      Yet, amid this rigorous quest for accuracy, there remains another voice—a moral, ethical counterweight. The Neuro Agent casts a wary eye on the implications of code switching, reminding us that behind every statistic lies a human life. It issues a subtle admonition when potential complications arise, insisting that, ultimately, "patients over profits."
     </p>
     <p>
-      As you navigate this simulator, you will see a record’s original, flawed ICD code—accompanied by its description—laid bare. Through a step‐by‐step process, this error is exposed, scrutinized, and finally replaced with a corrected code. The column labeled "AMI Agent Fix" confirms the repair, while "Neuro Agent Note" may bear a brief yet potent reminder of the ethical stakes at hand. In this world, as in ours, truth must be pursued, even when it is obscured by human imperfection.
+      As you navigate this simulator, you will see a record’s original, flawed ICD code—accompanied by its description—laid bare. Through a step‐by‐step process, this error is exposed, scrutinized, and finally replaced with a corrected code. The "AMI Agent Fix" column confirms the repair, while "Neuro Agent Note" may bear a brief yet potent reminder of the ethical stakes at hand.
+    </p>
+  </div>
+  
+  <div id="usageInstructions">
+    <h3>How to Use the Simulator</h3>
+    <p>
+      Use the <strong>Step</strong> button to progress through the record review process one step at a time. Each click advances the simulation from reviewing the record, identifying the error, updating the code, and finally confirming the repair. When all records have been processed, the simulation log will indicate completion. If you wish to start over, simply click the <strong>Reset Simulation</strong> button.
     </p>
   </div>
   
@@ -134,9 +133,9 @@
     <ul>
       <li><strong>Patient Name:</strong> The name of the patient.</li>
       <li><strong>Old ICD Code:</strong> The erroneous ICD code as originally recorded, along with its description.</li>
-      <li><strong>New ICD Code &amp; Description:</strong> The proposed corrected ICD code, accompanied by its description.</li>
+      <li><strong>New ICD Code &amp; Description:</strong> The proposed corrected ICD code along with its description.</li>
       <li><strong>AMI Agent Fix:</strong> An artificial machine intelligence agent that employs cosine similarity and classification techniques (akin to tf/idf) to identify and validate ICD codes based on both the granular details and the overall record.</li>
-      <li><strong>Neuro Agent Note:</strong> A moral and ethical agent that evaluates the implications of switching codes, guided by the principle "patients over profits." When the corrected code suggests potential complications, this column carries a brief note explaining why the case should be forwarded to the attending physician.</li>
+      <li><strong>Neuro Agent Note:</strong> A moral and ethical agent that evaluates the implications of switching codes, guided by the principle "patients over profits." If the corrected code indicates potential complications, this column includes a brief note explaining why the case should be forwarded to the attending physician.</li>
     </ul>
   </div>
   
