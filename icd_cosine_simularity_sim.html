@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ICD Code Repair Simulator with Cosine Similarity Analysis</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f5f5f5;
+    }
+    h1, h2, p {
+      text-align: center;
+      color: #333;
+    }
+    #noteContainer {
+      width: 90%;
+      max-width: 800px;
+      margin: 20px auto;
+      background-color: #fff;
+      padding: 15px;
+      border: 1px solid #ccc;
+    }
+    #exampleButtons {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    #exampleButtons button {
+      padding: 8px 15px;
+      margin: 0 5px;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background-color: #6c757d;
+      color: #fff;
+    }
+    #results {
+      width: 90%;
+      max-width: 800px;
+      margin: 20px auto;
+      background-color: #fff;
+      padding: 15px;
+      border: 1px solid #ccc;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+      font-size: 14px;
+    }
+    th {
+      background-color: #eaeaea;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px 5px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+    }
+    #analyzeBtn {
+      background-color: #5bc0de;
+      color: #fff;
+    }
+    #resetBtn {
+      background-color: #f0ad4e;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <h1>ICD Code Repair Simulator with Cosine Similarity Analysis</h1>
+  <p>
+    This simulator demonstrates a cosine similarity analysis of patient notes. The note is broken into individual lines, and for each line the simulator computes similarity scores against a repository of candidate ICD codes and their descriptions. The overall scores for each candidate are then tallied, simulating how one might compare individual aspects of the note with the overall content to suggest the best ICD code.
+  </p>
+  
+  <div id="noteContainer">
+    <h2>Patient Note</h2>
+    <!-- Buttons for patient note examples -->
+    <div id="exampleButtons">
+      <button id="patientNote1Btn">Patient Note 1 (Low Complexity)</button>
+      <button id="patientNote2Btn">Patient Note 2 (Medium Complexity)</button>
+      <button id="patientNote3Btn">Patient Note 3 (High Complexity)</button>
+    </div>
+    <textarea id="doctorNote" rows="10" style="width: 100%; font-size: 14px;"></textarea>
+    <div style="text-align: center;">
+      <button id="analyzeBtn">Analyze Cosine Similarity</button>
+      <button id="resetBtn">Reset</button>
+    </div>
+  </div>
+  
+  <div id="results">
+    <h2>Cosine Similarity Analysis Results</h2>
+    <div id="analysisOutput">
+      <!-- Analysis results will be injected here -->
+    </div>
+  </div>
+  
+  <script>
+    // Define three patient note examples representing low, medium, and high complexity.
+    const patientNote1 = `Patient is a 25-year-old male who presents with a mild headache and occasional dizziness.
+No significant past medical history.
+Vital signs are stable.
+The complaint is minor and does not require extensive investigation.`;
+
+    const patientNote2 = `A 35-year-old female complains of persistent chest pain and shortness of breath on exertion.
+She reports occasional palpitations and mild nausea.
+Her past medical history includes controlled hypertension.
+Examination reveals slightly elevated blood pressure; further tests are recommended.`;
+
+    const patientNote3 = `A 50-year-old male with a complex medical history (type 2 diabetes, hypertension, hyperlipidemia) presents with severe chest discomfort radiating to his left arm.
+He is experiencing profuse sweating, dizziness, and shortness of breath.
+The pain began suddenly 45 minutes ago and has persisted.
+He has a history of previous myocardial infarctions in the family and is a long-time smoker.
+This critical presentation may require immediate intervention.`;
+
+    // Set a default patient note (we'll use the low complexity note as the default)
+    const defaultNote = patientNote1;
+    document.getElementById("doctorNote").value = defaultNote;
+    
+    // Add event listeners to the patient note example buttons
+    document.getElementById("patientNote1Btn").addEventListener("click", () => {
+      document.getElementById("doctorNote").value = patientNote1;
+    });
+    document.getElementById("patientNote2Btn").addEventListener("click", () => {
+      document.getElementById("doctorNote").value = patientNote2;
+    });
+    document.getElementById("patientNote3Btn").addEventListener("click", () => {
+      document.getElementById("doctorNote").value = patientNote3;
+    });
+    
+    // Candidate ICD codes and their descriptions (repository simulation)
+    const candidates = [
+      { code: "R00.2", description: "Palpitations" },
+      { code: "I10", description: "Essential (primary) hypertension" },
+      { code: "E11.65", description: "Type 2 diabetes mellitus with hyperglycemia" },
+      { code: "K21.9", description: "Gastro-esophageal reflux disease without esophagitis" }
+    ];
+    
+    // This function simulates a cosine similarity score between 0 and 1.
+    // In a real system, you would compute the cosine similarity between two vectors.
+    function simulateCosineSimilarity(text, candidate) {
+      // For simulation, we'll return a pseudo-random number seeded by the length of the text and candidate code char codes.
+      let seed = text.length;
+      for (let i = 0; i < candidate.code.length; i++) {
+        seed += candidate.code.charCodeAt(i);
+      }
+      // Create a pseudo-random value between 0 and 1 based on the seed
+      let x = Math.sin(seed) * 10000;
+      return Math.abs(x - Math.floor(x)); // returns fractional part
+    }
+    
+    // Function to analyze the note
+    function analyzeNote() {
+      const noteText = document.getElementById("doctorNote").value.trim();
+      if (!noteText) {
+        alert("Please enter a patient note.");
+        return;
+      }
+      
+      // Split the note into individual lines based on newline characters.
+      const lines = noteText.split(/\r?\n/).filter(line => line.trim().length > 0);
+      
+      // Prepare a structure to hold scores for each candidate over all lines.
+      const overallScores = {};
+      candidates.forEach(candidate => {
+        overallScores[candidate.code] = 0;
+      });
+      
+      // Build an HTML table for the results.
+      let html = "<table><thead><tr><th>Line #</th><th>Line Text</th>";
+      candidates.forEach(candidate => {
+        html += `<th>${candidate.code}<br>(${candidate.description})</th>`;
+      });
+      html += "</tr></thead><tbody>";
+      
+      // For each line, simulate cosine similarity scores for each candidate.
+      lines.forEach((line, index) => {
+        html += `<tr><td>${index + 1}</td><td>${line}</td>`;
+        candidates.forEach(candidate => {
+          const score = simulateCosineSimilarity(line, candidate);
+          // Add this score to the overall score (we simply sum them)
+          overallScores[candidate.code] += score;
+          html += `<td>${score.toFixed(3)}</td>`;
+        });
+        html += "</tr>";
+      });
+      
+      // Add a summary row with overall scores.
+      html += "<tr><td colspan='2'><strong>Overall Score</strong></td>";
+      candidates.forEach(candidate => {
+        html += `<td><strong>${overallScores[candidate.code].toFixed(3)}</strong></td>`;
+      });
+      html += "</tr></tbody></table>";
+      
+      // Determine which candidate has the highest overall score.
+      let bestCandidate = null;
+      let bestScore = -1;
+      for (const code in overallScores) {
+        if (overallScores[code] > bestScore) {
+          bestScore = overallScores[code];
+          bestCandidate = code;
+        }
+      }
+      
+      html += `<p><strong>Suggested ICD Code Correction: ${bestCandidate}</strong> with an overall similarity score of ${bestScore.toFixed(3)}</p>`;
+      
+      document.getElementById("analysisOutput").innerHTML = html;
+    }
+    
+    // Reset function to clear the analysis results and repopulate the note with default text.
+    function resetAnalysis() {
+      document.getElementById("analysisOutput").innerHTML = "";
+      document.getElementById("doctorNote").value = defaultNote;
+    }
+    
+    document.getElementById("analyzeBtn").addEventListener("click", analyzeNote);
+    document.getElementById("resetBtn").addEventListener("click", resetAnalysis);
+  </script>
+</body>
+</html>
