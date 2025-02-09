@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Captain Coder – Multi-Agent ICD Code Repair Simulator with Neuro Agent</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f5f5f5;
+    }
+    h1, h2, h3, p {
+      color: #333;
+    }
+    #introduction, #usageInstructions, #columnDescriptions {
+      width: 90%;
+      max-width: 800px;
+      margin: 20px auto;
+      background-color: #fff;
+      padding: 15px;
+      border: 1px solid #ccc;
+      line-height: 1.6;
+      text-align: justify;
+    }
+    #columnDescriptions ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    #columnDescriptions li {
+      text-align: left;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+    table {
+      width: 90%;
+      border-collapse: collapse;
+      margin: 20px auto;
+      background-color: #fff;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+    }
+    th {
+      background-color: #eaeaea;
+    }
+    .pending {
+      color: #777;
+    }
+    .finalized {
+      color: #5cb85c;
+      font-weight: bold;
+    }
+    /* Highlight active record during simulation */
+    .active {
+      background-color: #ffffcc;
+    }
+    /* Style for highlighted key terms in the doctor's note */
+    .highlight {
+      background-color: yellow;
+      font-weight: bold;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px 5px;
+      font-size: 16px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+    }
+    #stepBtn {
+      background-color: #5bc0de;
+      color: #fff;
+    }
+    #resetBtn {
+      background-color: #f0ad4e;
+      color: #fff;
+    }
+    #log, #workflowPanel {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 20px auto;
+      width: 90%;
+      max-width: 800px;
+      background-color: #fff;
+      overflow-y: auto;
+    }
+    #log {
+      height: 150px;
+    }
+    #workflowPanel {
+      min-height: 150px;
+    }
+    blockquote {
+      font-style: italic;
+      background: #f9f9f9;
+      border-left: 5px solid #ccc;
+      padding: 10px;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Captain Coder – Multi-Agent ICD Code Repair Simulator with Neuro Agent</h1>
+  
+  <div id="introduction">
+    <h2>Introduction</h2>
+    <p>
+      In modern healthcare, accurate coding is essential yet challenging. Human error can lead to incorrect ICD codes, potentially impacting patient care and reimbursement. "Captain Coder" is a fully autonomous, multi‐agent AI approach where specialized agents work together to intake data, code, audit, correct, and finally decide—via a Neuro Agentic check—whether the new code should be forwarded to the physician.
+    </p>
+    <p>
+      In this simulation, each patient record is processed by a series of agents:
+    </p>
+    <ol>
+      <li><strong>Data Intake Agent:</strong> Receives the record and associated doctor's note.</li>
+      <li><strong>Coding (Inference) Agent:</strong> Proposes an updated ICD code.</li>
+      <li><strong>Audit Agent:</strong> Reviews the proposed code for compliance.</li>
+      <li><strong>Correction Agent:</strong> Refines the code if flagged.</li>
+      <li><strong>Orchestrator Agent:</strong> Finalizes the record.</li>
+      <li><strong>Neuro Agentic Agent:</strong> Checks if the new code should be forwarded to the physician.</li>
+      <li><strong>Self-Learning Agent:</strong> Logs the record for continuous improvement.</li>
+    </ol>
+  </div>
+  
+  <div id="usageInstructions">
+    <h3>How to Use the Simulator</h3>
+    <p>
+      Click the <strong>Step</strong> button to advance the current record through each agent’s workflow stage. When all steps are completed for a record, the simulation automatically moves to the next record. To restart the simulation at any time, click the <strong>Reset Simulation</strong> button.
+    </p>
+  </div>
+  
+  <div id="columnDescriptions">
+    <h3>Table Column Descriptions</h3>
+    <ul>
+      <li><strong>Patient Name:</strong> Name of the patient.</li>
+      <li><strong>Old ICD Code &amp; Description:</strong> The originally recorded (erroneous) ICD code and its description.</li>
+      <li><strong>New ICD Code &amp; Description:</strong> The proposed (and possibly refined) ICD code with its description.</li>
+      <li><strong>Agent Workflow Status:</strong> The current stage of processing.</li>
+      <li><strong>Agent Notes:</strong> Additional details or flags generated during processing.</li>
+    </ul>
+  </div>
+  
+  <!-- Patient Records Table -->
+  <table id="recordsTable">
+    <thead>
+      <tr>
+        <th>Patient Name</th>
+        <th>Old ICD Code &amp; Description</th>
+        <th>New ICD Code &amp; Description</th>
+        <th>Agent Workflow Status</th>
+        <th>Agent Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Rows will be generated by JavaScript -->
+    </tbody>
+  </table>
+  
+  <!-- Simulation Control Buttons -->
+  <div style="text-align: center;">
+    <button id="stepBtn">Step</button>
+    <button id="resetBtn">Reset Simulation</button>
+  </div>
+  
+  <!-- Simulation Log -->
+  <h2>Simulation Log</h2>
+  <div id="log"></div>
+  
+  <!-- Multi-Agent Workflow Panel -->
+  <h2>Captain Coder Multi-Agent Simulation Panel</h2>
+  <div id="workflowPanel">
+    <p>Multi-agent workflow panel ready.</p>
+  </div>
+  
+  <script>
+    /***** Data Setup *****/
+    // Original records with erroneous ICD codes.
+    const initialRecords = [
+      { name: "John Doe",    code: "R00.0", status: "Rejected" },
+      { name: "Jane Smith",  code: "I10.1", status: "Rejected" },
+      { name: "Bob Johnson", code: "E11.9", status: "Rejected" },
+      { name: "Alice Brown", code: "K21.8", status: "Rejected" }
+    ];
+
+    // Mapping from erroneous to corrected ICD codes.
+    const icdCorrections = {
+      "R00.0": "R00.2",
+      "I10.1": "I10",
+      "E11.9": "E11.65",
+      "K21.8": "K21.9"
+    };
+
+    // Descriptions for the corrected ICD codes.
+    const icdDescriptions = {
+      "R00.2": "Palpitations",
+      "I10": "Essential (primary) hypertension",
+      "E11.65": "Type 2 diabetes mellitus with hyperglycemia",
+      "K21.9": "Gastro-esophageal reflux disease without esophagitis"
+    };
+
+    // Erroneous descriptions for the original codes.
+    const erroneousDescriptions = {
+      "R00.0": "Unspecified abnormal heartbeat",
+      "I10.1": "Mild variant of hypertension",
+      "E11.9": "Diabetes, unspecified variant",
+      "K21.8": "Atypical reflux disease"
+    };
+
+    // Array of simulated doctor's notes.
+    const doctorNotes = [
+      `17-year-old male presenting with heart pounding and intermittent palpitations. Notes mention occasional chest pressure and lightheadedness.`,
+      `Patient reports recurrent palpitations over the past 3 months. During episodes, there is noted chest pressure and shortness of breath.`,
+      `A 17 y.o. male presents with complaints of heart pounding accompanied by episodes of chest pressure and lightheadedness.`,
+      `Patient experiences palpitations with retrosternal discomfort and lightheadedness during physical activity.`
+    ];
+
+    // Codes that will be flagged by the Audit Agent.
+    const complicationCodes = ["I10", "E11.65"];
+
+    /***** Simulation State *****/
+    let simulationState = {
+      recordsToProcess: [],
+      currentRecordIndex: 0,
+      // Steps:
+      // 0: Data Intake
+      // 1: Coding (Inference)
+      // 2: Audit
+      // 3: Correction
+      // 4: Orchestrator
+      // 5: Neuro Agentic Check
+      // 6: Self-Learning
+      currentStep: 0,
+      needsCorrection: false,
+      proposedCode: ""
+    };
+
+    // Agent names for each step.
+    const agents = [
+      "Data Intake Agent",
+      "Coding (Inference) Agent",
+      "Audit Agent",
+      "Correction Agent",
+      "Orchestrator Agent",
+      "Neuro Agentic Agent",
+      "Self-Learning Agent"
+    ];
+
+    /***** Helper Function: Highlight Key Terms in Doctor's Note *****/
+    function highlightNote(note) {
+      const keywords = ["palpitation", "heart pounding", "chest pressure", "lightheaded", "shortness of breath"];
+      let highlighted = note;
+      keywords.forEach(keyword => {
+        const regex = new RegExp(`(${keyword})`, 'gi');
+        highlighted = highlighted.replace(regex, '<span class="highlight">$1</span>');
+      });
+      return highlighted;
+    }
+
+    /***** Functions *****/
+    // Populate the table with patient records.
+    function populateTable() {
+      const tbody = document.querySelector("#recordsTable tbody");
+      tbody.innerHTML = "";
+      let noteIndex = 0;
+      initialRecords.forEach(record => {
+        const row = document.createElement("tr");
+        // Save the original code and attach a doctor's note.
+        row.dataset.oldcode = record.code;
+        row.dataset.note = doctorNotes[noteIndex % doctorNotes.length];
+        noteIndex++;
+        row.innerHTML = `
+          <td>${record.name}</td>
+          <td>${record.code} (${erroneousDescriptions[record.code] || "Description not available"})</td>
+          <td class="new-code"></td>
+          <td class="agent-status pending">Pending</td>
+          <td class="agent-notes"></td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // Log messages in the simulation log.
+    function logMessage(message) {
+      const logDiv = document.getElementById("log");
+      const time = new Date().toLocaleTimeString();
+      logDiv.innerHTML += `<p>[${time}] ${message}</p>`;
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    // Generate the new ICD code string with description.
+    function getNewICDCode(oldCode) {
+      let newCode = icdCorrections.hasOwnProperty(oldCode) ? icdCorrections[oldCode] : (oldCode + " - Corrected");
+      const description = icdDescriptions[newCode] || "Description not available";
+      return { code: newCode, fullString: `${newCode} (${description})` };
+    }
+
+    // Advance the simulation one step.
+    function advanceStep() {
+      // If all records have been processed, inform the user.
+      if (simulationState.currentRecordIndex >= simulationState.recordsToProcess.length) {
+        logMessage("All records have been processed in the multi-agent simulation.");
+        const panel = document.getElementById("workflowPanel");
+        panel.innerHTML += `<p><em>All records processed.</em></p>`;
+        return;
+      }
+      
+      const currentRow = simulationState.recordsToProcess[simulationState.currentRecordIndex];
+      const patientName = currentRow.cells[0].innerText;
+      const oldCode = currentRow.dataset.oldcode;
+      const doctorNoteRaw = currentRow.dataset.note;
+      const panel = document.getElementById("workflowPanel");
+      const highlightedNote = highlightNote(doctorNoteRaw.replace(/\n/g, '<br>'));
+
+      switch(simulationState.currentStep) {
+        case 0: // Data Intake Agent
+          panel.innerHTML = `<p><strong>Data Intake Agent:</strong> Received record for <em>${patientName}</em>.</p>
+          <p>Doctor's Note:</p>
+          <blockquote>${highlightedNote}</blockquote>`;
+          currentRow.classList.add("active");
+          currentRow.cells[3].innerText = "Data Intake: Received";
+          logMessage(`Data Intake Agent processed record for ${patientName}.`);
+          simulationState.currentStep++;
+          break;
+        case 1: // Coding (Inference) Agent
+          const result = getNewICDCode(oldCode);
+          simulationState.proposedCode = result.code;
+          currentRow.cells[2].innerText = result.fullString;
+          currentRow.cells[3].innerText = "Coding Agent: Proposed code";
+          panel.innerHTML = `<p><strong>Coding (Inference) Agent:</strong> Proposed new code for <em>${patientName}</em> is <strong>${result.fullString}</strong>.</p>`;
+          logMessage(`Coding Agent proposed ${result.fullString} for ${patientName}.`);
+          simulationState.currentStep++;
+          break;
+        case 2: // Audit Agent
+          if (complicationCodes.includes(simulationState.proposedCode)) {
+            simulationState.needsCorrection = true;
+            currentRow.cells[3].innerText = "Audit Agent: Code flagged for review";
+            currentRow.cells[4].innerText = "Flag: Potential compliance issue detected.";
+            panel.innerHTML = `<p><strong>Audit Agent:</strong> The proposed code <strong>${simulationState.proposedCode}</strong> for <em>${patientName}</em> has been flagged for further review.</p>`;
+            logMessage(`Audit Agent flagged the code ${simulationState.proposedCode} for ${patientName}.`);
+          } else {
+            simulationState.needsCorrection = false;
+            currentRow.cells[3].innerText = "Audit Agent: Code passed compliance";
+            currentRow.cells[4].innerText = "No issues detected.";
+            panel.innerHTML = `<p><strong>Audit Agent:</strong> The proposed code <strong>${simulationState.proposedCode}</strong> for <em>${patientName}</em> has passed compliance review.</p>`;
+            logMessage(`Audit Agent approved the code ${simulationState.proposedCode} for ${patientName}.`);
+          }
+          simulationState.currentStep++;
+          break;
+        case 3: // Correction Agent
+          if (simulationState.needsCorrection) {
+            // Simulate refinement by appending a suffix.
+            simulationState.proposedCode += "-Final";
+            // Update the new code cell – here we simply append " (Refined)".
+            currentRow.cells[2].innerText = simulationState.proposedCode + " (Refined)";
+            currentRow.cells[4].innerText += " | Correction applied.";
+            panel.innerHTML = `<p><strong>Correction Agent:</strong> Refining code for <em>${patientName}</em>. Final code updated to <strong>${simulationState.proposedCode}</strong>.</p>`;
+            logMessage(`Correction Agent refined the code for ${patientName} to ${simulationState.proposedCode}.`);
+          } else {
+            panel.innerHTML = `<p><strong>Correction Agent:</strong> No correction necessary for <em>${patientName}</em>.</p>`;
+            logMessage(`Correction Agent found no corrections necessary for ${patientName}.`);
+          }
+          simulationState.currentStep++;
+          break;
+        case 4: // Orchestrator Agent
+          currentRow.cells[3].innerText = "Orchestrator: Record finalized";
+          panel.innerHTML = `<p><strong>Orchestrator Agent:</strong> Finalizing record for <em>${patientName}</em>.</p>`;
+          logMessage(`Orchestrator Agent finalized the record for ${patientName}.`);
+          simulationState.currentStep++;
+          break;
+        case 5: // Neuro Agentic Agent Check
+          panel.innerHTML = `<p><strong>Neuro Agentic Agent:</strong> Reviewing final code for <em>${patientName}</em>.</p>`;
+          // Check if the new code requires forwarding. Using startsWith in case a suffix was appended.
+          if (simulationState.proposedCode.startsWith("I10") || simulationState.proposedCode.startsWith("E11.65")) {
+            currentRow.cells[4].innerText += " | Forward to Attending Physician: Potential complication detected.";
+            panel.innerHTML += `<p>Neuro Agentic Agent: The final code <strong>${simulationState.proposedCode}</strong> requires review by a physician.</p>`;
+            logMessage(`Neuro Agentic Agent forwarded record for ${patientName} to the physician.`);
+          } else {
+            currentRow.cells[4].innerText += " | No forwarding required.";
+            panel.innerHTML += `<p>Neuro Agentic Agent: No forwarding required for ${patientName}.</p>`;
+            logMessage(`Neuro Agentic Agent: Record for ${patientName} does not require physician review.`);
+          }
+          simulationState.currentStep++;
+          break;
+        case 6: // Self-Learning Agent
+          currentRow.cells[4].innerText += " | Self-Learning: Record logged for feedback.";
+          panel.innerHTML = `<p><strong>Self-Learning Agent:</strong> Logged record for <em>${patientName}</em> into the feedback loop for continuous improvement.</p>`;
+          logMessage(`Self-Learning Agent logged the record for ${patientName} for future model refinement.`);
+          currentRow.classList.remove("active");
+          // Mark the row as finalized.
+          currentRow.cells[3].classList.remove("pending");
+          currentRow.cells[3].classList.add("finalized");
+          // Move to the next record.
+          simulationState.currentRecordIndex++;
+          simulationState.currentStep = 0;
+          simulationState.needsCorrection = false;
+          simulationState.proposedCode = "";
+          if (simulationState.currentRecordIndex < simulationState.recordsToProcess.length) {
+            const nextPatient = simulationState.recordsToProcess[simulationState.currentRecordIndex].cells[0].innerText;
+            logMessage(`Ready to process record for ${nextPatient}.`);
+          }
+          break;
+      }
+    }
+
+    // Reset the simulation.
+    function resetSimulation() {
+      populateTable();
+      document.getElementById("log").innerHTML = "";
+      document.getElementById("workflowPanel").innerHTML = "<p>Multi-agent workflow panel ready.</p>";
+      logMessage("Simulation has been reset.");
+      simulationState = {
+        recordsToProcess: [],
+        currentRecordIndex: 0,
+        currentStep: 0,
+        needsCorrection: false,
+        proposedCode: ""
+      };
+      const tbodyRows = Array.from(document.querySelectorAll("#recordsTable tbody tr"));
+      simulationState.recordsToProcess = tbodyRows;
+    }
+
+    /***** Event Listeners *****/
+    document.getElementById("stepBtn").addEventListener("click", advanceStep);
+    document.getElementById("resetBtn").addEventListener("click", resetSimulation);
+
+    // Initialize simulation on page load.
+    populateTable();
+    resetSimulation();
+  </script>
+</body>
+</html>
