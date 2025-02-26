@@ -1130,6 +1130,7 @@
             currentDay: 0,
             speed: 5,
             selectedAgent: null,
+            charts: {}, // Store chart instances
             metrics: {
                 firstPassRate: {
                     baseline: 75.4,
@@ -1734,10 +1735,10 @@ Instructions:
             function initCharts() {
                 // Performance chart
                 const perfCtx = document.getElementById('performance-chart').getContext('2d');
-                const perfChart = new Chart(perfCtx, {
+                simulationData.charts.performanceChart = new Chart(perfCtx, {
                     type: 'line',
                     data: {
-                        labels: Array.from({length: 7}, (_, i) => `Day ${i}`),
+                        labels: Array.from({length: simulationData.metrics.firstPassRate.history.length}, (_, i) => `Day ${i}`),
                         datasets: [
                             {
                                 label: 'First Pass Rate',
@@ -1768,15 +1769,23 @@ Instructions:
                     }
                 });
                 
+                // Count modifications by type
+                const billingMods = Object.values(simulationData.promptModifications).filter(mod => 
+                    mod.targetAgent.includes('billing')).length;
+                const claimsMods = Object.values(simulationData.promptModifications).filter(mod => 
+                    mod.targetAgent.includes('claim')).length;
+                const appealsMods = Object.values(simulationData.promptModifications).filter(mod => 
+                    mod.targetAgent.includes('appeal') || mod.targetAgent.includes('denial')).length;
+                
                 // Modifications chart
                 const modCtx = document.getElementById('modifications-chart').getContext('2d');
-                const modChart = new Chart(modCtx, {
+                simulationData.charts.modificationsChart = new Chart(modCtx, {
                     type: 'bar',
                     data: {
                         labels: ['Billing', 'Claims', 'Appeals'],
                         datasets: [{
                             label: 'Prompt Modifications',
-                            data: [2, 3, 2],
+                            data: [billingMods, claimsMods, appealsMods],
                             backgroundColor: [
                                 'rgba(16, 185, 129, 0.7)',
                                 'rgba(37, 99, 235, 0.7)',
@@ -1791,6 +1800,31 @@ Instructions:
                 });
             }
             
+            // Function to update charts with new data
+            function updateCharts() {
+                if (!simulationData.charts.performanceChart || !simulationData.charts.modificationsChart) return;
+                
+                // Update performance chart
+                simulationData.charts.performanceChart.data.labels = 
+                    Array.from({length: simulationData.metrics.firstPassRate.history.length}, (_, i) => `Day ${i}`);
+                simulationData.charts.performanceChart.data.datasets[0].data = simulationData.metrics.firstPassRate.history;
+                simulationData.charts.performanceChart.data.datasets[1].data = simulationData.metrics.appealSuccess.history;
+                simulationData.charts.performanceChart.update();
+                
+                // Count modifications by type that have occurred up to the current day
+                const billingMods = Object.values(simulationData.promptModifications).filter(mod => 
+                    mod.targetAgent.includes('billing') && mod.day <= simulationData.currentDay).length;
+                const claimsMods = Object.values(simulationData.promptModifications).filter(mod => 
+                    mod.targetAgent.includes('claim') && mod.day <= simulationData.currentDay).length;
+                const appealsMods = Object.values(simulationData.promptModifications).filter(mod => 
+                    (mod.targetAgent.includes('appeal') || mod.targetAgent.includes('denial')) && 
+                    mod.day <= simulationData.currentDay).length;
+                
+                // Update modifications chart
+                simulationData.charts.modificationsChart.data.datasets[0].data = [billingMods, claimsMods, appealsMods];
+                simulationData.charts.modificationsChart.update();
+            }
+            
             // Simulate a day in the RCM process
             function simulateDay() {
                 if (!simulationData.isRunning) return;
@@ -1800,7 +1834,7 @@ Instructions:
                 
                 // Update metrics
                 if (simulationData.currentDay < simulationData.metrics.firstPassRate.history.length) {
-                    updateMetrics(simulationData.currentDay);
+                    updateMetrics();
                 } else {
                     // Generate new metrics
                     const newMetrics = {
@@ -1822,9 +1856,12 @@ Instructions:
                     simulationData.metrics.denialRate.history.push(newMetrics.denialRate);
                     simulationData.metrics.appealSuccess.history.push(newMetrics.appealSuccess);
                     
-                    updateMetrics(simulationData.currentDay);
+                    updateMetrics();
                     updateMetricTrends();
                 }
+                
+                // Update charts with new data
+                updateCharts();
                 
                 // Generate random activities
                 generateRandomActivities();
@@ -1867,108 +1904,10 @@ Instructions:
                         setTimeout(() => {
                             openPromptModificationModal(modId);
                         }, 2000);
+                        
+                        // Update charts after modification
+                        updateCharts();
                     }
-                }
-            }
-            
-            // Helper function to get tier name
-            function getTierName(tierNumber) {
-                switch(tierNumber) {
-                    case 1: return 'Tier 1';
-                    case 2: return 'Tier 2';
-                    case 3: return 'Tier 3';
-                    default: return 'Unknown Tier';
-                }
-            }
-            
-            // Helper function to get agent name
-            function getAgentName(agentId) {
-                // Convert kebab-case to Title Case
-                return agentId
-                    .split('-')
-                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(' ');
-            }
-
-            function generateRandomActivities() {
-                // Define possible activities for each tier
-                const tier1Activities = [
-                    "Analyzing system performance metrics",
-                    "Evaluating strategic alignment of tier 2 agents",
-                    "Reviewing compliance standards",
-                    "Optimizing metacognitive frameworks"
-                ];
-                
-                const tier2Activities = [
-                    "Analyzing worker agent performance",
-                    "Identifying optimization opportunities",
-                    "Implementing process improvements",
-                    "Reviewing denial patterns"
-                ];
-                
-                const tier3Activities = [
-                    "Processing claim #${Math.floor(Math.random() * 10000)}",
-                    "Coding encounter for patient #${Math.floor(Math.random() * 10000)}",
-                    "Appealing denied claim #${Math.floor(Math.random() * 10000)}",
-                    "Submitting batch of ${Math.floor(Math.random() * 50) + 10} claims"
-                ];
-                
-                // Get random agents from each tier
-                const tier1Agents = simulationData.agents.tier1;
-                const tier2Agents = simulationData.agents.tier2;
-                const tier3Agents = simulationData.agents.tier3;
-                
-                // Randomly decide which tiers will have activity this day
-                const tier1Active = Math.random() < 0.3; // 30% chance
-                const tier2Active = Math.random() < 0.5; // 50% chance
-                const tier3Active = Math.random() < 0.8; // 80% chance
-                
-                // Generate activities
-                if (tier1Active && tier1Agents.length > 0) {
-                    const randomAgent = tier1Agents[Math.floor(Math.random() * tier1Agents.length)];
-                    const randomActivity = tier1Activities[Math.floor(Math.random() * tier1Activities.length)];
-                    
-                    addLogEntry(
-                        simulationData.currentDay,
-                        getAgentName(randomAgent.id),
-                        1,
-                        randomActivity
-                    );
-                    
-                    highlightAgent(randomAgent.id);
-                }
-                
-                if (tier2Active && tier2Agents.length > 0) {
-                    const randomAgent = tier2Agents[Math.floor(Math.random() * tier2Agents.length)];
-                    const randomActivity = tier2Activities[Math.floor(Math.random() * tier2Activities.length)];
-                    
-                    addLogEntry(
-                        simulationData.currentDay,
-                        getAgentName(randomAgent.id),
-                        2,
-                        randomActivity
-                    );
-                    
-                    highlightAgent(randomAgent.id);
-                }
-                
-                if (tier3Active && tier3Agents.length > 0) {
-                    const randomAgent = tier3Agents[Math.floor(Math.random() * tier3Agents.length)];
-                    const randomActivity = tier3Activities[Math.floor(Math.random() * tier3Activities.length)];
-                    
-                    // Evaluate the template string
-                    const activity = randomActivity.replace(/\${([^}]+)}/g, (match, expr) => {
-                        return eval(expr);
-                    });
-                    
-                    addLogEntry(
-                        simulationData.currentDay,
-                        getAgentName(randomAgent.id),
-                        3,
-                        activity
-                    );
-                    
-                    highlightAgent(randomAgent.id);
                 }
             }
 
@@ -2017,8 +1956,11 @@ Instructions:
                 simulationData.metrics.denialRate.history = [simulationData.metrics.denialRate.baseline];
                 simulationData.metrics.appealSuccess.history = [simulationData.metrics.appealSuccess.baseline];
                 
-                updateMetrics(0);
+                updateMetrics();
                 updateMetricTrends();
+                
+                // Update charts
+                updateCharts();
                 
                 // Add initial log entry
                 addLogEntry(0, 'System', 1, 'Simulation initialized');
@@ -2046,6 +1988,9 @@ Instructions:
 
             // Initialize
             resetSimulation();
+            renderAgentCards();
+            initCharts();
+            updateCharts();
         });
 
         // Modal control functions
@@ -2211,6 +2156,107 @@ Instructions:
                 setTimeout(() => {
                     hierarchyIndicator.classList.remove('active');
                 }, 2000);
+            }
+        }
+
+        // Helper function to get tier name
+        function getTierName(tierNumber) {
+            switch(tierNumber) {
+                case 1: return 'Tier 1';
+                case 2: return 'Tier 2';
+                case 3: return 'Tier 3';
+                default: return 'Unknown Tier';
+            }
+        }
+        
+        // Helper function to get agent name
+        function getAgentName(agentId) {
+            // Convert kebab-case to Title Case
+            return agentId
+                .split('-')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+        }
+
+        function generateRandomActivities() {
+            // Define possible activities for each tier
+            const tier1Activities = [
+                "Analyzing system performance metrics",
+                "Evaluating strategic alignment of tier 2 agents",
+                "Reviewing compliance standards",
+                "Optimizing metacognitive frameworks"
+            ];
+            
+            const tier2Activities = [
+                "Analyzing worker agent performance",
+                "Identifying optimization opportunities",
+                "Implementing process improvements",
+                "Reviewing denial patterns"
+            ];
+            
+            const tier3Activities = [
+                "Processing claim #${Math.floor(Math.random() * 10000)}",
+                "Coding encounter for patient #${Math.floor(Math.random() * 10000)}",
+                "Appealing denied claim #${Math.floor(Math.random() * 10000)}",
+                "Submitting batch of ${Math.floor(Math.random() * 50) + 10} claims"
+            ];
+            
+            // Get random agents from each tier
+            const tier1Agents = simulationData.agents.tier1;
+            const tier2Agents = simulationData.agents.tier2;
+            const tier3Agents = simulationData.agents.tier3;
+            
+            // Randomly decide which tiers will have activity this day
+            const tier1Active = Math.random() < 0.3; // 30% chance
+            const tier2Active = Math.random() < 0.5; // 50% chance
+            const tier3Active = Math.random() < 0.8; // 80% chance
+            
+            // Generate activities
+            if (tier1Active && tier1Agents.length > 0) {
+                const randomAgent = tier1Agents[Math.floor(Math.random() * tier1Agents.length)];
+                const randomActivity = tier1Activities[Math.floor(Math.random() * tier1Activities.length)];
+                
+                addLogEntry(
+                    simulationData.currentDay,
+                    getAgentName(randomAgent.id),
+                    1,
+                    randomActivity
+                );
+                
+                highlightAgent(randomAgent.id);
+            }
+            
+            if (tier2Active && tier2Agents.length > 0) {
+                const randomAgent = tier2Agents[Math.floor(Math.random() * tier2Agents.length)];
+                const randomActivity = tier2Activities[Math.floor(Math.random() * tier2Activities.length)];
+                
+                addLogEntry(
+                    simulationData.currentDay,
+                    getAgentName(randomAgent.id),
+                    2,
+                    randomActivity
+                );
+                
+                highlightAgent(randomAgent.id);
+            }
+            
+            if (tier3Active && tier3Agents.length > 0) {
+                const randomAgent = tier3Agents[Math.floor(Math.random() * tier3Agents.length)];
+                const randomActivity = tier3Activities[Math.floor(Math.random() * tier3Activities.length)];
+                
+                // Evaluate the template string
+                const activity = randomActivity.replace(/\${([^}]+)}/g, (match, expr) => {
+                    return eval(expr);
+                });
+                
+                addLogEntry(
+                    simulationData.currentDay,
+                    getAgentName(randomAgent.id),
+                    3,
+                    activity
+                );
+                
+                highlightAgent(randomAgent.id);
             }
         }
     </script>
