@@ -990,22 +990,22 @@
             <div class="metric-card">
                 <h4>First Pass Rate</h4>
                 <div class="metric-value" id="first-pass-rate">78.2%</div>
-                <div class="metric-trend">↑ 3.7% from baseline</div>
+                <div class="metric-trend" id="first-pass-rate-trend">↑ 3.7% from baseline</div>
             </div>
             <div class="metric-card">
                 <h4>Days Sales Outstanding</h4>
                 <div class="metric-value" id="dso">24.8</div>
-                <div class="metric-trend">↓ 11.2% from baseline</div>
+                <div class="metric-trend" id="dso-trend">↓ 11.2% from baseline</div>
             </div>
             <div class="metric-card">
                 <h4>Denial Rate</h4>
                 <div class="metric-value" id="denial-rate">8.4%</div>
-                <div class="metric-trend">↓ 5.1% from baseline</div>
+                <div class="metric-trend" id="denial-rate-trend">↓ 5.1% from baseline</div>
             </div>
             <div class="metric-card">
                 <h4>Average Appeal Success</h4>
                 <div class="metric-value" id="appeal-success">67.3%</div>
-                <div class="metric-trend">↑ 9.8% from baseline</div>
+                <div class="metric-trend" id="appeal-success-trend">↑ 9.8% from baseline</div>
             </div>
         </div>
 
@@ -1657,7 +1657,19 @@ Instructions:
                 if (!performance) return 'N/A';
                 
                 return Object.entries(performance)
-                    .map(([key, value]) => `${formatStatKey(key)}: ${value}`)
+                    .map(([key, value]) => {
+                        // Format percentage values with 3 decimal places
+                        if (typeof value === 'string' && value.includes('%')) {
+                            const numValue = parseFloat(value.replace('%', ''));
+                            return `${formatStatKey(key)}: ${formatPercentage(numValue)}`;
+                        } else if (typeof value === 'number' && 
+                                  (key.toLowerCase().includes('rate') || 
+                                   key.toLowerCase().includes('accuracy') || 
+                                   key.toLowerCase().includes('success'))) {
+                            return `${formatStatKey(key)}: ${formatPercentage(value)}`;
+                        }
+                        return `${formatStatKey(key)}: ${value}`;
+                    })
                     .join(', ');
             }
             
@@ -1678,10 +1690,10 @@ Instructions:
                     const denialRate = simulationData.metrics.denialRate.history[day];
                     const appealSuccess = simulationData.metrics.appealSuccess.history[day];
                     
-                    document.getElementById('first-pass-rate').textContent = firstPassRate + '%';
-                    document.getElementById('dso').textContent = dso;
-                    document.getElementById('denial-rate').textContent = denialRate + '%';
-                    document.getElementById('appeal-success').textContent = appealSuccess + '%';
+                    document.getElementById('first-pass-rate').textContent = formatPercentage(firstPassRate);
+                    document.getElementById('dso').textContent = dso.toFixed(3);
+                    document.getElementById('denial-rate').textContent = formatPercentage(denialRate);
+                    document.getElementById('appeal-success').textContent = formatPercentage(appealSuccess);
                     
                     // Update current values in simulation data
                     simulationData.metrics.firstPassRate.current = firstPassRate;
@@ -1689,6 +1701,24 @@ Instructions:
                     simulationData.metrics.denialRate.current = denialRate;
                     simulationData.metrics.appealSuccess.current = appealSuccess;
                 }
+            }
+            
+            // Helper function to format percentage values with 3 decimal places
+            function formatPercentage(value) {
+                return value.toFixed(3) + '%';
+            }
+            
+            // Format metric trends with 3 decimal places
+            function updateMetricTrends() {
+                const firstPassRateTrend = ((simulationData.metrics.firstPassRate.current - simulationData.metrics.firstPassRate.baseline) / simulationData.metrics.firstPassRate.baseline * 100).toFixed(3);
+                const dsoTrend = ((simulationData.metrics.dso.current - simulationData.metrics.dso.baseline) / simulationData.metrics.dso.baseline * 100).toFixed(3);
+                const denialRateTrend = ((simulationData.metrics.denialRate.current - simulationData.metrics.denialRate.baseline) / simulationData.metrics.denialRate.baseline * 100).toFixed(3);
+                const appealSuccessTrend = ((simulationData.metrics.appealSuccess.current - simulationData.metrics.appealSuccess.baseline) / simulationData.metrics.appealSuccess.baseline * 100).toFixed(3);
+                
+                document.getElementById('first-pass-rate-trend').textContent = `↑ ${Math.abs(firstPassRateTrend)}% from baseline`;
+                document.getElementById('dso-trend').textContent = `↓ ${Math.abs(dsoTrend)}% from baseline`;
+                document.getElementById('denial-rate-trend').textContent = `↓ ${Math.abs(denialRateTrend)}% from baseline`;
+                document.getElementById('appeal-success-trend').textContent = `↑ ${Math.abs(appealSuccessTrend)}% from baseline`;
             }
             
             // Add activity log entry
@@ -1793,6 +1823,7 @@ Instructions:
                     simulationData.metrics.appealSuccess.history.push(newMetrics.appealSuccess);
                     
                     updateMetrics(simulationData.currentDay);
+                    updateMetricTrends();
                 }
                 
                 // Generate random activities
@@ -1987,6 +2018,7 @@ Instructions:
                 simulationData.metrics.appealSuccess.history = [simulationData.metrics.appealSuccess.baseline];
                 
                 updateMetrics(0);
+                updateMetricTrends();
                 
                 // Add initial log entry
                 addLogEntry(0, 'System', 1, 'Simulation initialized');
