@@ -449,6 +449,21 @@
             border-left: 3px solid var(--primary);
         }
 
+        /* Add styles for clickable modification entries */
+        .log-entry[title] {
+            transition: background-color 0.2s;
+        }
+
+        .log-entry[title]:hover {
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+
+        .log-entry[title]::after {
+            content: ' 🔍';
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
         .connection-lines {
             position: absolute;
             top: 0;
@@ -1124,6 +1139,15 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        // Add error handling for the entire script
+        window.onerror = function(message, source, lineno, colno, error) {
+            console.error("JavaScript error:", message, "at line", lineno, ":", error);
+            alert("An error occurred: " + message);
+            return true;
+        };
+        
+        console.log("Script starting...");
+        
         // Simulation data
         const simulationData = {
             isRunning: false,
@@ -1526,471 +1550,28 @@ Instructions:
 
         // Initialize simulation controls
         document.addEventListener('DOMContentLoaded', function() {
-            const startButton = document.getElementById('start-btn');
-            const resetButton = document.getElementById('reset-btn');
-            const speedControl = document.getElementById('speed-control');
-
-            let simulationInterval;
+            console.log("DOM fully loaded");
             
-            // Render agent cards for each tier
-            function renderAgentCards() {
-                // Tier 1 agents
-                const tier1Container = document.getElementById('tier-1-agents');
-                tier1Container.innerHTML = '';
-                simulationData.agents.tier1.forEach(agent => {
-                    const card = createAgentCard(agent, 1);
-                    tier1Container.appendChild(card);
-                });
-                
-                // Tier 2 agents
-                const tier2Container = document.getElementById('tier-2-agents');
-                tier2Container.innerHTML = '';
-                simulationData.agents.tier2.forEach(agent => {
-                    const card = createAgentCard(agent, 2);
-                    tier2Container.appendChild(card);
-                });
-                
-                // Tier 3 agents
-                const tier3Container = document.getElementById('tier-3-agents');
-                tier3Container.innerHTML = '';
-                simulationData.agents.tier3.forEach(agent => {
-                    const card = createAgentCard(agent, 3);
-                    tier3Container.appendChild(card);
-                });
-            }
-            
-            // Create agent card element
-            function createAgentCard(agent, tier) {
-                const card = document.createElement('div');
-                card.className = 'agent-card';
-                card.dataset.id = agent.id;
-                
-                // Performance indicator class
-                let performanceClass = '';
-                if (agent.performance === 'improving') {
-                    performanceClass = 'performance-improving';
-                } else if (agent.performance === 'stable') {
-                    performanceClass = 'performance-stable';
-                } else if (agent.performance === 'declining') {
-                    performanceClass = 'performance-declining';
-                }
-                
-                // Create stats HTML
-                let statsHtml = '';
-                for (const [key, value] of Object.entries(agent.stats)) {
-                    statsHtml += `<div class="agent-stat">${formatStatKey(key)}: ${value}</div>`;
-                }
-                
-                card.innerHTML = `
-                    <div class="agent-header">
-                        <h4 class="agent-title">${agent.name}</h4>
-                        <span class="agent-performance ${performanceClass}">${agent.performance}</span>
-                    </div>
-                    <p class="agent-description">${agent.description}</p>
-                    <div class="agent-stats">
-                        ${statsHtml}
-                    </div>
-                    <p class="agent-activity">Last activity: ${agent.lastActivity}</p>
-                `;
-                
-                // Add click event to show agent details
-                card.addEventListener('click', () => {
-                    showAgentDetails(agent);
-                });
-                
-                return card;
-            }
-            
-            // Format stat key for display (camelCase to Title Case with spaces)
-            function formatStatKey(key) {
-                return key
-                    .replace(/([A-Z])/g, ' $1')
-                    .replace(/^./, str => str.toUpperCase());
-            }
-            
-            // Show agent details when card is clicked
-            function showAgentDetails(agent) {
-                // Remove selected class from all cards
-                document.querySelectorAll('.agent-card').forEach(card => {
-                    card.classList.remove('selected');
-                });
-                
-                // Add selected class to clicked card
-                document.querySelector(`.agent-card[data-id="${agent.id}"]`).classList.add('selected');
-                
-                // Update agent detail section
-                const detailSection = document.getElementById('agent-detail');
-                const nameElement = document.getElementById('detail-agent-name');
-                const descriptionElement = document.getElementById('detail-agent-description');
-                const promptHistoryContainer = document.getElementById('prompt-history-container');
-                
-                nameElement.textContent = agent.name;
-                descriptionElement.textContent = agent.description;
-                
-                // Show prompt history if available
-                if (simulationData.promptHistory[agent.id]) {
-                    promptHistoryContainer.innerHTML = '';
-                    simulationData.promptHistory[agent.id].forEach(entry => {
-                        const promptEntry = document.createElement('div');
-                        promptEntry.className = 'prompt-entry';
-                        
-                        promptEntry.innerHTML = `
-                            <div class="prompt-meta">
-                                <span>Day ${entry.day} - Source: ${entry.source}</span>
-                                <span>Performance: ${formatPerformanceMetrics(entry.performance)}</span>
-                            </div>
-                            <div class="prompt-content">${formatPromptContent(entry.content)}</div>
-                        `;
-                        
-                        promptHistoryContainer.appendChild(promptEntry);
-                    });
-                    detailSection.style.display = 'block';
-                } else {
-                    promptHistoryContainer.innerHTML = '<p>No prompt history available for this agent.</p>';
-                    detailSection.style.display = 'block';
-                }
-                
-                simulationData.selectedAgent = agent.id;
-            }
-            
-            // Format performance metrics for display
-            function formatPerformanceMetrics(performance) {
-                if (!performance) return 'N/A';
-                
-                return Object.entries(performance)
-                    .map(([key, value]) => {
-                        // Format percentage values with 3 decimal places
-                        if (typeof value === 'string' && value.includes('%')) {
-                            const numValue = parseFloat(value.replace('%', ''));
-                            return `${formatStatKey(key)}: ${formatPercentage(numValue)}`;
-                        } else if (typeof value === 'number' && 
-                                  (key.toLowerCase().includes('rate') || 
-                                   key.toLowerCase().includes('accuracy') || 
-                                   key.toLowerCase().includes('success'))) {
-                            return `${formatStatKey(key)}: ${formatPercentage(value)}`;
-                        }
-                        return `${formatStatKey(key)}: ${value}`;
-                    })
-                    .join(', ');
-            }
-            
-            // Format prompt content to highlight changes
-            function formatPromptContent(content) {
-                // Already has HTML tags for highlighting
-                return content;
-            }
-            
-            // Update metrics based on current day
-            function updateMetrics() {
-                const day = simulationData.currentDay;
-                
-                // Update metric displays with values from history
-                if (day < simulationData.metrics.firstPassRate.history.length) {
-                    const firstPassRate = simulationData.metrics.firstPassRate.history[day];
-                    const dso = simulationData.metrics.dso.history[day];
-                    const denialRate = simulationData.metrics.denialRate.history[day];
-                    const appealSuccess = simulationData.metrics.appealSuccess.history[day];
-                    
-                    document.getElementById('first-pass-rate').textContent = formatPercentage(firstPassRate);
-                    document.getElementById('dso').textContent = dso.toFixed(3);
-                    document.getElementById('denial-rate').textContent = formatPercentage(denialRate);
-                    document.getElementById('appeal-success').textContent = formatPercentage(appealSuccess);
-                    
-                    // Update current values in simulation data
-                    simulationData.metrics.firstPassRate.current = firstPassRate;
-                    simulationData.metrics.dso.current = dso;
-                    simulationData.metrics.denialRate.current = denialRate;
-                    simulationData.metrics.appealSuccess.current = appealSuccess;
-                }
-            }
-            
-            // Helper function to format percentage values with 3 decimal places
-            function formatPercentage(value) {
-                return value.toFixed(3) + '%';
-            }
-            
-            // Format metric trends with 3 decimal places
-            function updateMetricTrends() {
-                const firstPassRateTrend = ((simulationData.metrics.firstPassRate.current - simulationData.metrics.firstPassRate.baseline) / simulationData.metrics.firstPassRate.baseline * 100).toFixed(3);
-                const dsoTrend = ((simulationData.metrics.dso.current - simulationData.metrics.dso.baseline) / simulationData.metrics.dso.baseline * 100).toFixed(3);
-                const denialRateTrend = ((simulationData.metrics.denialRate.current - simulationData.metrics.denialRate.baseline) / simulationData.metrics.denialRate.baseline * 100).toFixed(3);
-                const appealSuccessTrend = ((simulationData.metrics.appealSuccess.current - simulationData.metrics.appealSuccess.baseline) / simulationData.metrics.appealSuccess.baseline * 100).toFixed(3);
-                
-                document.getElementById('first-pass-rate-trend').textContent = `↑ ${Math.abs(firstPassRateTrend)}% from baseline`;
-                document.getElementById('dso-trend').textContent = `↓ ${Math.abs(dsoTrend)}% from baseline`;
-                document.getElementById('denial-rate-trend').textContent = `↓ ${Math.abs(denialRateTrend)}% from baseline`;
-                document.getElementById('appeal-success-trend').textContent = `↑ ${Math.abs(appealSuccessTrend)}% from baseline`;
-            }
-            
-            // Add activity log entry
-            function addLogEntry(day, agent, tier, message) {
-                const logContainer = document.getElementById('log-container');
-                const logEntry = document.createElement('div');
-                logEntry.className = `log-entry tier-${tier}`;
-                logEntry.innerHTML = `<span class="timestamp">Day ${day}</span> <strong>${agent}:</strong> ${message}`;
-                logContainer.prepend(logEntry);
-            }
-            
-            // Initialize charts
-            function initCharts() {
-                // Performance chart
-                const perfCtx = document.getElementById('performance-chart').getContext('2d');
-                simulationData.charts.performanceChart = new Chart(perfCtx, {
-                    type: 'line',
-                    data: {
-                        labels: Array.from({length: simulationData.metrics.firstPassRate.history.length}, (_, i) => `Day ${i}`),
-                        datasets: [
-                            {
-                                label: 'First Pass Rate',
-                                data: simulationData.metrics.firstPassRate.history,
-                                borderColor: '#2563eb',
-                                backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                                tension: 0.3
-                            },
-                            {
-                                label: 'Appeal Success',
-                                data: simulationData.metrics.appealSuccess.history,
-                                borderColor: '#10b981',
-                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                                tension: 0.3
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: false,
-                                min: 50,
-                                max: 100
-                            }
-                        }
-                    }
-                });
-                
-                // Count modifications by type
-                const billingMods = Object.values(simulationData.promptModifications).filter(mod => 
-                    mod.targetAgent.includes('billing')).length;
-                const claimsMods = Object.values(simulationData.promptModifications).filter(mod => 
-                    mod.targetAgent.includes('claim')).length;
-                const appealsMods = Object.values(simulationData.promptModifications).filter(mod => 
-                    mod.targetAgent.includes('appeal') || mod.targetAgent.includes('denial')).length;
-                
-                // Modifications chart
-                const modCtx = document.getElementById('modifications-chart').getContext('2d');
-                simulationData.charts.modificationsChart = new Chart(modCtx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Billing', 'Claims', 'Appeals'],
-                        datasets: [{
-                            label: 'Prompt Modifications',
-                            data: [billingMods, claimsMods, appealsMods],
-                            backgroundColor: [
-                                'rgba(16, 185, 129, 0.7)',
-                                'rgba(37, 99, 235, 0.7)',
-                                'rgba(124, 58, 237, 0.7)'
-                            ]
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false
-                    }
-                });
-            }
-            
-            // Function to update charts with new data
-            function updateCharts() {
-                if (!simulationData.charts.performanceChart || !simulationData.charts.modificationsChart) return;
-                
-                // Update performance chart
-                simulationData.charts.performanceChart.data.labels = 
-                    Array.from({length: simulationData.metrics.firstPassRate.history.length}, (_, i) => `Day ${i}`);
-                simulationData.charts.performanceChart.data.datasets[0].data = simulationData.metrics.firstPassRate.history;
-                simulationData.charts.performanceChart.data.datasets[1].data = simulationData.metrics.appealSuccess.history;
-                simulationData.charts.performanceChart.update();
-                
-                // Count modifications by type that have occurred up to the current day
-                const billingMods = Object.values(simulationData.promptModifications).filter(mod => 
-                    mod.targetAgent.includes('billing') && mod.day <= simulationData.currentDay).length;
-                const claimsMods = Object.values(simulationData.promptModifications).filter(mod => 
-                    mod.targetAgent.includes('claim') && mod.day <= simulationData.currentDay).length;
-                const appealsMods = Object.values(simulationData.promptModifications).filter(mod => 
-                    (mod.targetAgent.includes('appeal') || mod.targetAgent.includes('denial')) && 
-                    mod.day <= simulationData.currentDay).length;
-                
-                // Update modifications chart
-                simulationData.charts.modificationsChart.data.datasets[0].data = [billingMods, claimsMods, appealsMods];
-                simulationData.charts.modificationsChart.update();
-            }
-            
-            // Simulate a day in the RCM process
-            function simulateDay() {
-                if (!simulationData.isRunning) return;
-                
-                simulationData.currentDay++;
-                document.getElementById('current-day').textContent = simulationData.currentDay;
-                
-                // Update metrics
-                if (simulationData.currentDay < simulationData.metrics.firstPassRate.history.length) {
-                    updateMetrics();
-                } else {
-                    // Generate new metrics
-                    const newMetrics = {
-                        firstPassRate: Math.min(95, simulationData.metrics.firstPassRate.current + (Math.random() * 0.3 - 0.05)),
-                        dso: Math.max(15, simulationData.metrics.dso.current - (Math.random() * 0.3 - 0.05)),
-                        denialRate: Math.max(5, simulationData.metrics.denialRate.current - (Math.random() * 0.1 - 0.02)),
-                        appealSuccess: Math.min(95, simulationData.metrics.appealSuccess.current + (Math.random() * 0.3 - 0.05))
-                    };
-                    
-                    // Update current metrics
-                    simulationData.metrics.firstPassRate.current = newMetrics.firstPassRate;
-                    simulationData.metrics.dso.current = newMetrics.dso;
-                    simulationData.metrics.denialRate.current = newMetrics.denialRate;
-                    simulationData.metrics.appealSuccess.current = newMetrics.appealSuccess;
-                    
-                    // Add to history
-                    simulationData.metrics.firstPassRate.history.push(newMetrics.firstPassRate);
-                    simulationData.metrics.dso.history.push(newMetrics.dso);
-                    simulationData.metrics.denialRate.history.push(newMetrics.denialRate);
-                    simulationData.metrics.appealSuccess.history.push(newMetrics.appealSuccess);
-                    
-                    updateMetrics();
-                    updateMetricTrends();
-                }
-                
-                // Update charts with new data
-                updateCharts();
-                
-                // Generate random activities
-                generateRandomActivities();
-                
-                // Check for prompt modifications on specific days
-                checkForPromptModifications();
-                
-                // Schedule next day
-                setTimeout(simulateDay, 1000 / simulationData.speed);
-            }
-            
-            // Function to check for prompt modifications
-            function checkForPromptModifications() {
-                // Check each modification to see if it should be triggered on the current day
-                for (const [modId, modification] of Object.entries(simulationData.promptModifications)) {
-                    if (modification.day === simulationData.currentDay) {
-                        // Get source and target agent elements
-                        const sourceAgentId = modification.sourceAgent;
-                        const targetAgentId = modification.targetAgent;
-                        
-                        // Highlight the agents
-                        highlightAgent(sourceAgentId);
-                        setTimeout(() => highlightAgent(targetAgentId), 1000);
-                        
-                        // Show the modification flow
-                        showModificationFlow(sourceAgentId, targetAgentId);
-                        
-                        // Add log entry
-                        const sourceTierName = getTierName(modification.sourceTier);
-                        const targetTierName = getTierName(modification.targetTier);
-                        
-                        addLogEntry(
-                            simulationData.currentDay,
-                            `${getAgentName(sourceAgentId)} (${sourceTierName})`,
-                            modification.sourceTier,
-                            `Modified prompt for ${getAgentName(targetAgentId)} (${targetTierName})`
-                        );
-                        
-                        // Show the prompt modification modal after a delay
-                        setTimeout(() => {
-                            openPromptModificationModal(modId);
-                        }, 2000);
-                        
-                        // Update charts after modification
-                        updateCharts();
-                    }
-                }
-            }
-
-            // Start the simulation
-            function startSimulation() {
-                if (simulationData.isRunning) return;
-                
-                simulationData.isRunning = true;
-                document.getElementById('start-btn').textContent = 'Pause Simulation';
-                
-                // Reset if we've reached the end
-                if (simulationData.currentDay >= 30) {
-                    simulationData.currentDay = 0;
-                    resetSimulation();
-                }
-                
-                // Start simulating days
-                simulateDay();
-            }
-            
-            // Pause the simulation
-            function pauseSimulation() {
-                simulationData.isRunning = false;
-                document.getElementById('start-btn').textContent = 'Continue Simulation';
-            }
-            
-            // Reset the simulation
-            function resetSimulation() {
-                simulationData.currentDay = 0;
-                simulationData.isRunning = false;
-                document.getElementById('current-day').textContent = '0';
-                document.getElementById('start-btn').textContent = 'Start Simulation';
-                
-                // Clear the log
-                document.getElementById('log-container').innerHTML = '';
-                
-                // Reset metrics to baseline
-                simulationData.metrics.firstPassRate.current = simulationData.metrics.firstPassRate.baseline;
-                simulationData.metrics.dso.current = simulationData.metrics.dso.baseline;
-                simulationData.metrics.denialRate.current = simulationData.metrics.denialRate.baseline;
-                simulationData.metrics.appealSuccess.current = simulationData.metrics.appealSuccess.baseline;
-                
-                // Reset history to just baseline
-                simulationData.metrics.firstPassRate.history = [simulationData.metrics.firstPassRate.baseline];
-                simulationData.metrics.dso.history = [simulationData.metrics.dso.baseline];
-                simulationData.metrics.denialRate.history = [simulationData.metrics.denialRate.baseline];
-                simulationData.metrics.appealSuccess.history = [simulationData.metrics.appealSuccess.baseline];
-                
-                updateMetrics();
-                updateMetricTrends();
-                
-                // Update charts
-                updateCharts();
-                
-                // Add initial log entry
-                addLogEntry(0, 'System', 1, 'Simulation initialized');
-                
-                // Render agent cards
-                renderAgentCards();
-            }
-            
-            // Toggle simulation
-            function toggleSimulation() {
-                if (simulationData.isRunning) {
-                    pauseSimulation();
-                } else {
-                    startSimulation();
-                }
-            }
-
-            // Add event listeners
-            startButton.addEventListener('click', toggleSimulation);
-            resetButton.addEventListener('click', resetSimulation);
-            speedControl.addEventListener('input', function(e) {
-                simulationData.speed = parseInt(e.target.value);
-                document.getElementById('speed-value').textContent = simulationData.speed + 'x';
-            });
-
             // Initialize
             resetSimulation();
             renderAgentCards();
             initCharts();
             updateCharts();
+            
+            console.log("Initialization complete");
+
+            // Add event listeners
+            document.getElementById('start-btn').addEventListener('click', function() {
+                console.log("Start button clicked directly!");
+                toggleSimulation();
+            });
+            
+            document.getElementById('reset-btn').addEventListener('click', resetSimulation);
+            
+            document.getElementById('speed-control').addEventListener('input', function(e) {
+                simulationData.speed = parseInt(e.target.value);
+                document.getElementById('speed-value').textContent = simulationData.speed + 'x';
+            });
         });
 
         // Modal control functions
@@ -2091,71 +1672,86 @@ Instructions:
 
         // Function to highlight an agent card
         function highlightAgent(agentId) {
-            const agentCard = document.querySelector(`.agent-card[data-id="${agentId}"]`);
-            if (agentCard) {
-                agentCard.classList.add('active');
-                setTimeout(() => {
-                    agentCard.classList.remove('active');
-                }, 2000);
+            try {
+                console.log("Highlighting agent:", agentId);
+                const agentCard = document.querySelector(`.agent-card[data-id="${agentId}"]`);
+                if (agentCard) {
+                    agentCard.classList.add('active');
+                    setTimeout(() => {
+                        agentCard.classList.remove('active');
+                    }, 2000);
+                } else {
+                    console.warn("Agent card not found:", agentId);
+                }
+            } catch (error) {
+                console.error("Error highlighting agent:", error);
             }
         }
         
         // Function to show modification flow between agents
         function showModificationFlow(sourceAgentId, targetAgentId) {
-            if (!sourceAgentId || !targetAgentId) return;
-            
-            // Get agent elements
-            const sourceAgent = document.querySelector(`.agent-card[data-id="${sourceAgentId}"]`);
-            const targetAgent = document.querySelector(`.agent-card[data-id="${targetAgentId}"]`);
-            
-            if (!sourceAgent || !targetAgent) return;
-            
-            // Create a temporary connection line
-            const connection = document.createElement('div');
-            connection.className = 'agent-connection';
-            document.body.appendChild(connection);
-            
-            // Get positions
-            const sourceRect = sourceAgent.getBoundingClientRect();
-            const targetRect = targetAgent.getBoundingClientRect();
-            
-            // Calculate positions
-            const sourceX = sourceRect.left + sourceRect.width / 2;
-            const sourceY = sourceRect.bottom;
-            const targetX = targetRect.left + targetRect.width / 2;
-            const targetY = targetRect.top;
-            
-            // Set connection style
-            connection.style.left = sourceX + 'px';
-            connection.style.top = sourceY + 'px';
-            connection.style.width = '3px';
-            connection.style.height = (targetY - sourceY) + 'px';
-            
-            // Add animation class
-            connection.classList.add('connection-active');
-            
-            // Remove after animation
-            setTimeout(() => {
-                connection.remove();
-            }, 2000);
-            
-            // Determine which hierarchy indicator to highlight
-            let hierarchyIndex;
-            if (sourceAgentId.includes('strategic') || sourceAgentId.includes('performance') || sourceAgentId.includes('compliance')) {
-                // Tier 1 to Tier 2
-                hierarchyIndex = 0;
-            } else {
-                // Tier 2 to Tier 3
-                hierarchyIndex = 1;
-            }
-            
-            // Highlight the hierarchy indicator
-            const hierarchyIndicator = document.querySelectorAll('.hierarchy-indicator')[hierarchyIndex];
-            if (hierarchyIndicator) {
-                hierarchyIndicator.classList.add('active');
+            try {
+                console.log("Showing modification flow:", sourceAgentId, "->", targetAgentId);
+                if (!sourceAgentId || !targetAgentId) return;
+                
+                // Get agent elements
+                const sourceAgent = document.querySelector(`.agent-card[data-id="${sourceAgentId}"]`);
+                const targetAgent = document.querySelector(`.agent-card[data-id="${targetAgentId}"]`);
+                
+                if (!sourceAgent || !targetAgent) {
+                    console.warn("Source or target agent not found");
+                    return;
+                }
+                
+                // Create a temporary connection line
+                const connection = document.createElement('div');
+                connection.className = 'agent-connection';
+                document.body.appendChild(connection);
+                
+                // Get positions
+                const sourceRect = sourceAgent.getBoundingClientRect();
+                const targetRect = targetAgent.getBoundingClientRect();
+                
+                // Calculate positions
+                const sourceX = sourceRect.left + sourceRect.width / 2;
+                const sourceY = sourceRect.bottom;
+                const targetX = targetRect.left + targetRect.width / 2;
+                const targetY = targetRect.top;
+                
+                // Set connection style
+                connection.style.left = sourceX + 'px';
+                connection.style.top = sourceY + 'px';
+                connection.style.width = '3px';
+                connection.style.height = (targetY - sourceY) + 'px';
+                
+                // Add animation class
+                connection.classList.add('connection-active');
+                
+                // Remove after animation
                 setTimeout(() => {
-                    hierarchyIndicator.classList.remove('active');
+                    connection.remove();
                 }, 2000);
+                
+                // Determine which hierarchy indicator to highlight
+                let hierarchyIndex;
+                if (sourceAgentId.includes('strategic') || sourceAgentId.includes('performance') || sourceAgentId.includes('compliance') || sourceAgentId.includes('system')) {
+                    // Tier 1 to Tier 2
+                    hierarchyIndex = 0;
+                } else {
+                    // Tier 2 to Tier 3
+                    hierarchyIndex = 1;
+                }
+                
+                // Highlight the hierarchy indicator
+                const hierarchyIndicator = document.querySelectorAll('.hierarchy-indicator')[hierarchyIndex];
+                if (hierarchyIndicator) {
+                    hierarchyIndicator.classList.add('active');
+                    setTimeout(() => {
+                        hierarchyIndicator.classList.remove('active');
+                    }, 2000);
+                }
+            } catch (error) {
+                console.error("Error showing modification flow:", error);
             }
         }
 
@@ -2179,6 +1775,8 @@ Instructions:
         }
 
         function generateRandomActivities() {
+            console.log("Generating random activities for day", simulationData.currentDay);
+            
             // Define possible activities for each tier
             const tier1Activities = [
                 "Analyzing system performance metrics",
@@ -2195,10 +1793,10 @@ Instructions:
             ];
             
             const tier3Activities = [
-                "Processing claim #${Math.floor(Math.random() * 10000)}",
-                "Coding encounter for patient #${Math.floor(Math.random() * 10000)}",
-                "Appealing denied claim #${Math.floor(Math.random() * 10000)}",
-                "Submitting batch of ${Math.floor(Math.random() * 50) + 10} claims"
+                "Processing claim #" + Math.floor(Math.random() * 10000),
+                "Coding encounter for patient #" + Math.floor(Math.random() * 10000),
+                "Appealing denied claim #" + Math.floor(Math.random() * 10000),
+                "Submitting batch of " + (Math.floor(Math.random() * 50) + 10) + " claims"
             ];
             
             // Get random agents from each tier
@@ -2216,47 +1814,642 @@ Instructions:
                 const randomAgent = tier1Agents[Math.floor(Math.random() * tier1Agents.length)];
                 const randomActivity = tier1Activities[Math.floor(Math.random() * tier1Activities.length)];
                 
-                addLogEntry(
-                    simulationData.currentDay,
-                    getAgentName(randomAgent.id),
-                    1,
-                    randomActivity
-                );
+                // Randomly decide if this will be a prompt modification (20% chance)
+                const isModification = Math.random() < 0.2;
                 
-                highlightAgent(randomAgent.id);
+                if (isModification && simulationData.currentDay > 3) {
+                    // Create a modification message
+                    const targetAgent = simulationData.agents.tier2[Math.floor(Math.random() * simulationData.agents.tier2.length)];
+                    const message = `Modified ${targetAgent.name} prompt to improve performance`;
+                    
+                    addLogEntry(
+                        simulationData.currentDay,
+                        getAgentName(randomAgent.id),
+                        1,
+                        message
+                    );
+                    
+                    // Check if we have a predefined modification for this pair
+                    const modificationId = `${randomAgent.id}-${targetAgent.id}`;
+                    if (simulationData.promptModifications[modificationId]) {
+                        // Show the modification modal
+                        setTimeout(() => {
+                            openPromptModificationModal(modificationId);
+                        }, 500);
+                    }
+                    
+                    highlightAgent(randomAgent.id);
+                    
+                    // Show modification flow if target agent exists
+                    if (targetAgent) {
+                        setTimeout(() => {
+                            showModificationFlow(randomAgent.id, targetAgent.id);
+                        }, 1000);
+                    }
+                } else {
+                    addLogEntry(
+                        simulationData.currentDay,
+                        getAgentName(randomAgent.id),
+                        1,
+                        randomActivity
+                    );
+                    
+                    highlightAgent(randomAgent.id);
+                }
             }
             
             if (tier2Active && tier2Agents.length > 0) {
                 const randomAgent = tier2Agents[Math.floor(Math.random() * tier2Agents.length)];
                 const randomActivity = tier2Activities[Math.floor(Math.random() * tier2Activities.length)];
                 
-                addLogEntry(
-                    simulationData.currentDay,
-                    getAgentName(randomAgent.id),
-                    2,
-                    randomActivity
-                );
+                // Randomly decide if this will be a prompt modification (20% chance)
+                const isModification = Math.random() < 0.2;
                 
-                highlightAgent(randomAgent.id);
+                if (isModification && simulationData.currentDay > 2) {
+                    // Create a modification message
+                    const targetAgent = simulationData.agents.tier3[Math.floor(Math.random() * simulationData.agents.tier3.length)];
+                    const message = `Modified ${targetAgent.name} prompt to improve efficiency`;
+                    
+                    addLogEntry(
+                        simulationData.currentDay,
+                        getAgentName(randomAgent.id),
+                        2,
+                        message
+                    );
+                    
+                    // Check if we have a predefined modification for this pair
+                    const modificationId = `${randomAgent.id}-${targetAgent.id}`;
+                    if (simulationData.promptModifications[modificationId]) {
+                        // Show the modification modal
+                        setTimeout(() => {
+                            openPromptModificationModal(modificationId);
+                        }, 500);
+                    }
+                    
+                    highlightAgent(randomAgent.id);
+                    
+                    // Show modification flow if target agent exists
+                    if (targetAgent) {
+                        setTimeout(() => {
+                            showModificationFlow(randomAgent.id, targetAgent.id);
+                        }, 1000);
+                    }
+                } else {
+                    addLogEntry(
+                        simulationData.currentDay,
+                        getAgentName(randomAgent.id),
+                        2,
+                        randomActivity
+                    );
+                    
+                    highlightAgent(randomAgent.id);
+                }
             }
             
             if (tier3Active && tier3Agents.length > 0) {
                 const randomAgent = tier3Agents[Math.floor(Math.random() * tier3Agents.length)];
                 const randomActivity = tier3Activities[Math.floor(Math.random() * tier3Activities.length)];
                 
-                // Evaluate the template string
-                const activity = randomActivity.replace(/\${([^}]+)}/g, (match, expr) => {
-                    return eval(expr);
-                });
-                
                 addLogEntry(
                     simulationData.currentDay,
                     getAgentName(randomAgent.id),
                     3,
-                    activity
+                    randomActivity
                 );
                 
                 highlightAgent(randomAgent.id);
+            }
+        }
+
+        // Add toggle simulation function
+        function toggleSimulation() {
+            console.log("Toggle simulation called");
+            if (simulationData.isRunning) {
+                pauseSimulation();
+            } else {
+                startSimulation();
+            }
+        }
+
+        // Function to start the simulation
+        function startSimulation() {
+            console.log("Starting simulation...");
+            simulationData.isRunning = true;
+            document.getElementById('start-btn').textContent = 'Pause Simulation';
+            simulateDay();
+        }
+
+        // Function to pause the simulation
+        function pauseSimulation() {
+            console.log("Pausing simulation...");
+            simulationData.isRunning = false;
+            document.getElementById('start-btn').textContent = 'Continue Simulation';
+        }
+
+        // Function to simulate a day
+        function simulateDay() {
+            console.log("Simulating day...");
+            
+            if (!simulationData.isRunning) {
+                console.log("Simulation stopped");
+                return;
+            }
+            
+            // Increment day counter
+            simulationData.currentDay++;
+            document.getElementById('current-day').textContent = simulationData.currentDay;
+            
+            // Update metrics
+            updateMetrics();
+            
+            // Generate random activities
+            generateRandomActivities();
+            
+            // Update charts
+            updateCharts();
+            
+            // Schedule next day based on speed
+            const delay = Math.max(100, 1000 / simulationData.speed);
+            setTimeout(simulateDay, delay);
+        }
+
+        // Function to update metrics based on the current day
+        function updateMetrics() {
+            try {
+                console.log("Updating metrics for day", simulationData.currentDay);
+                
+                // Simple formula to update metrics based on day
+                // These would normally be more complex calculations based on agent activities
+                const dayFactor = Math.min(0.1, simulationData.currentDay * 0.01);
+                
+                // Update first pass rate (increases)
+                const newFirstPassRate = Math.min(95, simulationData.metrics.firstPassRate.baseline * (1 + dayFactor));
+                simulationData.metrics.firstPassRate.current = newFirstPassRate;
+                simulationData.metrics.firstPassRate.history.push(newFirstPassRate);
+                
+                // Update DSO (decreases)
+                const newDSO = Math.max(15, simulationData.metrics.dso.baseline * (1 - dayFactor));
+                simulationData.metrics.dso.current = newDSO;
+                simulationData.metrics.dso.history.push(newDSO);
+                
+                // Update denial rate (decreases)
+                const newDenialRate = Math.max(5, simulationData.metrics.denialRate.baseline * (1 - dayFactor));
+                simulationData.metrics.denialRate.current = newDenialRate;
+                simulationData.metrics.denialRate.history.push(newDenialRate);
+                
+                // Update appeal success (increases)
+                const newAppealSuccess = Math.min(90, simulationData.metrics.appealSuccess.baseline * (1 + dayFactor));
+                simulationData.metrics.appealSuccess.current = newAppealSuccess;
+                simulationData.metrics.appealSuccess.history.push(newAppealSuccess);
+                
+                // Update the UI
+                updateMetricsDisplay();
+                updateMetricTrends();
+            } catch (error) {
+                console.error("Error updating metrics:", error);
+            }
+        }
+
+        // Function to update the metrics display
+        function updateMetricsDisplay() {
+            try {
+                console.log("Updating metrics display");
+                
+                // Format and display the current metrics
+                document.getElementById('first-pass-rate').textContent = formatPercentage(simulationData.metrics.firstPassRate.current);
+                document.getElementById('dso').textContent = simulationData.metrics.dso.current.toFixed(1);
+                document.getElementById('denial-rate').textContent = formatPercentage(simulationData.metrics.denialRate.current);
+                document.getElementById('appeal-success').textContent = formatPercentage(simulationData.metrics.appealSuccess.current);
+            } catch (error) {
+                console.error("Error updating metrics display:", error);
+            }
+        }
+
+        // Function to update the metric trends
+        function updateMetricTrends() {
+            try {
+                console.log("Updating metric trends");
+                
+                // Calculate and display the trends (difference from baseline)
+                const firstPassRateDiff = simulationData.metrics.firstPassRate.current - simulationData.metrics.firstPassRate.baseline;
+                const dsoDiff = simulationData.metrics.dso.current - simulationData.metrics.dso.baseline;
+                const denialRateDiff = simulationData.metrics.denialRate.current - simulationData.metrics.denialRate.baseline;
+                const appealSuccessDiff = simulationData.metrics.appealSuccess.current - simulationData.metrics.appealSuccess.baseline;
+                
+                // Update the trend displays
+                document.getElementById('first-pass-rate-trend').textContent = 
+                    `${firstPassRateDiff >= 0 ? '↑' : '↓'} ${Math.abs(firstPassRateDiff).toFixed(1)}% from baseline`;
+                
+                document.getElementById('dso-trend').textContent = 
+                    `${dsoDiff <= 0 ? '↓' : '↑'} ${Math.abs(dsoDiff).toFixed(1)} from baseline`;
+                
+                document.getElementById('denial-rate-trend').textContent = 
+                    `${denialRateDiff <= 0 ? '↓' : '↑'} ${Math.abs(denialRateDiff).toFixed(1)}% from baseline`;
+                
+                document.getElementById('appeal-success-trend').textContent = 
+                    `${appealSuccessDiff >= 0 ? '↑' : '↓'} ${Math.abs(appealSuccessDiff).toFixed(1)}% from baseline`;
+            } catch (error) {
+                console.error("Error updating metric trends:", error);
+            }
+        }
+
+        // Helper function to format percentage values
+        function formatPercentage(value) {
+            return value.toFixed(1) + '%';
+        }
+
+        // Function to reset the simulation
+        function resetSimulation() {
+            try {
+                console.log("Resetting simulation...");
+                
+                // Pause the simulation if it's running
+                simulationData.isRunning = false;
+                document.getElementById('start-btn').textContent = 'Start Simulation';
+                
+                // Reset day counter
+                simulationData.currentDay = 0;
+                document.getElementById('current-day').textContent = '0';
+                
+                // Clear log container
+                document.getElementById('log-container').innerHTML = '';
+                
+                // Reset metrics to baseline values
+                simulationData.metrics.firstPassRate.current = simulationData.metrics.firstPassRate.baseline;
+                simulationData.metrics.firstPassRate.history = [simulationData.metrics.firstPassRate.baseline];
+                
+                simulationData.metrics.dso.current = simulationData.metrics.dso.baseline;
+                simulationData.metrics.dso.history = [simulationData.metrics.dso.baseline];
+                
+                simulationData.metrics.denialRate.current = simulationData.metrics.denialRate.baseline;
+                simulationData.metrics.denialRate.history = [simulationData.metrics.denialRate.baseline];
+                
+                simulationData.metrics.appealSuccess.current = simulationData.metrics.appealSuccess.baseline;
+                simulationData.metrics.appealSuccess.history = [simulationData.metrics.appealSuccess.baseline];
+                
+                // Update UI
+                updateMetricsDisplay();
+                updateMetricTrends();
+                updateCharts();
+                
+                // Add initial log entry
+                addLogEntry(0, 'System', 0, 'Simulation initialized');
+                
+                // Render agent cards
+                renderAgentCards();
+                
+                console.log("Simulation reset complete");
+            } catch (error) {
+                console.error("Error resetting simulation:", error);
+            }
+        }
+
+        // Function to add a log entry
+        function addLogEntry(day, agent, tier, message) {
+            try {
+                console.log(`Adding log entry: Day ${day}, Agent: ${agent}, Message: ${message}`);
+                
+                // Create log entry element
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry tier-${tier}`;
+                
+                // Format timestamp
+                const timestamp = document.createElement('span');
+                timestamp.className = 'timestamp';
+                timestamp.textContent = `Day ${day}`;
+                
+                // Create message content
+                const messageContent = document.createElement('span');
+                messageContent.innerHTML = `<strong>${agent}:</strong> ${message}`;
+                
+                // Append elements
+                logEntry.appendChild(timestamp);
+                logEntry.appendChild(messageContent);
+                
+                // Add click event for modification entries
+                if (message.includes('Modified')) {
+                    logEntry.style.cursor = 'pointer';
+                    logEntry.title = 'Click to view prompt modification details';
+                    
+                    logEntry.addEventListener('click', function() {
+                        // Try to find the modification based on the message
+                        const agentName = agent.toLowerCase().replace(/\s+/g, '-');
+                        const targetAgentName = message.match(/Modified (.*?) prompt/);
+                        
+                        if (targetAgentName && targetAgentName[1]) {
+                            const targetAgent = targetAgentName[1].toLowerCase().replace(/\s+/g, '-');
+                            
+                            // Look for a matching modification
+                            for (const [modId, mod] of Object.entries(simulationData.promptModifications)) {
+                                if (modId.includes(agentName) || modId.includes(targetAgent)) {
+                                    openPromptModificationModal(modId);
+                                    return;
+                                }
+                            }
+                        }
+                        
+                        // If no specific modification found, try to find any modification for this tier
+                        const tierMods = Object.keys(simulationData.promptModifications).filter(key => {
+                            const mod = simulationData.promptModifications[key];
+                            return mod.sourceTier === tier;
+                        });
+                        
+                        if (tierMods.length > 0) {
+                            openPromptModificationModal(tierMods[0]);
+                        } else {
+                            console.log("No matching prompt modification found");
+                        }
+                    });
+                }
+                
+                // Add to log container
+                const logContainer = document.getElementById('log-container');
+                logContainer.prepend(logEntry); // Add to the top
+                
+                // Store in simulation data
+                simulationData.activityLog.push({ day, agent, tier, message });
+            } catch (error) {
+                console.error("Error adding log entry:", error);
+            }
+        }
+
+        // Function to render agent cards
+        function renderAgentCards() {
+            try {
+                console.log("Rendering agent cards");
+                
+                // Clear existing agent containers
+                document.getElementById('tier-1-agents').innerHTML = '';
+                document.getElementById('tier-2-agents').innerHTML = '';
+                document.getElementById('tier-3-agents').innerHTML = '';
+                
+                // Render Tier 1 agents
+                simulationData.agents.tier1.forEach(agent => {
+                    const agentCard = createAgentCard(agent, 1);
+                    document.getElementById('tier-1-agents').appendChild(agentCard);
+                });
+                
+                // Render Tier 2 agents
+                simulationData.agents.tier2.forEach(agent => {
+                    const agentCard = createAgentCard(agent, 2);
+                    document.getElementById('tier-2-agents').appendChild(agentCard);
+                });
+                
+                // Render Tier 3 agents
+                simulationData.agents.tier3.forEach(agent => {
+                    const agentCard = createAgentCard(agent, 3);
+                    document.getElementById('tier-3-agents').appendChild(agentCard);
+                });
+            } catch (error) {
+                console.error("Error rendering agent cards:", error);
+            }
+        }
+
+        // Helper function to create an agent card
+        function createAgentCard(agent, tier) {
+            // Create card element
+            const card = document.createElement('div');
+            card.className = 'agent-card';
+            card.dataset.id = agent.id;
+            card.dataset.tier = tier;
+            
+            // Create header
+            const header = document.createElement('div');
+            header.className = 'agent-header';
+            
+            // Create title
+            const title = document.createElement('h4');
+            title.className = 'agent-title';
+            title.textContent = agent.name;
+            
+            // Create performance indicator
+            const performance = document.createElement('span');
+            performance.className = `agent-performance performance-${agent.performance}`;
+            performance.textContent = agent.performance.charAt(0).toUpperCase() + agent.performance.slice(1);
+            
+            // Add title and performance to header
+            header.appendChild(title);
+            header.appendChild(performance);
+            
+            // Create description
+            const description = document.createElement('p');
+            description.className = 'agent-description';
+            description.textContent = agent.description;
+            
+            // Create stats
+            const stats = document.createElement('div');
+            stats.className = 'agent-stats';
+            
+            // Add stats
+            for (const [key, value] of Object.entries(agent.stats)) {
+                const stat = document.createElement('span');
+                stat.className = 'agent-stat';
+                
+                // Format stat name (camelCase to Title Case)
+                const formattedKey = key
+                    .replace(/([A-Z])/g, ' $1')
+                    .replace(/^./, str => str.toUpperCase());
+                
+                stat.textContent = `${formattedKey}: ${value}`;
+                stats.appendChild(stat);
+            }
+            
+            // Create activity
+            const activity = document.createElement('p');
+            activity.className = 'agent-activity';
+            activity.textContent = `Last activity: ${agent.lastActivity}`;
+            
+            // Assemble card
+            card.appendChild(header);
+            card.appendChild(description);
+            card.appendChild(stats);
+            card.appendChild(activity);
+            
+            // Add click event
+            card.addEventListener('click', () => {
+                showAgentDetail(agent.id);
+            });
+            
+            return card;
+        }
+
+        // Function to show agent detail
+        function showAgentDetail(agentId) {
+            console.log("Showing agent detail for:", agentId);
+            // This would display the agent detail panel with prompt history
+            // For now, we'll just log it
+        }
+
+        // Function to initialize charts
+        function initCharts() {
+            try {
+                console.log("Initializing charts");
+                
+                // Get chart contexts
+                const performanceCtx = document.getElementById('performance-chart').getContext('2d');
+                const modificationsCtx = document.getElementById('modifications-chart').getContext('2d');
+                
+                // Create performance chart
+                simulationData.charts.performance = new Chart(performanceCtx, {
+                    type: 'line',
+                    data: {
+                        labels: Array.from({ length: simulationData.metrics.firstPassRate.history.length }, (_, i) => `Day ${i}`),
+                        datasets: [
+                            {
+                                label: 'First Pass Rate',
+                                data: simulationData.metrics.firstPassRate.history,
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            },
+                            {
+                                label: 'DSO',
+                                data: simulationData.metrics.dso.history,
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            },
+                            {
+                                label: 'Denial Rate',
+                                data: simulationData.metrics.denialRate.history,
+                                borderColor: '#ef4444',
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            },
+                            {
+                                label: 'Appeal Success',
+                                data: simulationData.metrics.appealSuccess.history,
+                                borderColor: '#8b5cf6',
+                                backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 0,
+                                max: 100
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
+                        }
+                    }
+                });
+                
+                // Create modifications chart
+                simulationData.charts.modifications = new Chart(modificationsCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Tier 1 → Tier 2', 'Tier 2 → Tier 3'],
+                        datasets: [
+                            {
+                                label: 'Prompt Modifications',
+                                data: [0, 0], // Will be updated
+                                backgroundColor: [
+                                    'rgba(139, 92, 246, 0.7)',
+                                    'rgba(16, 185, 129, 0.7)'
+                                ],
+                                borderColor: [
+                                    'rgba(139, 92, 246, 1)',
+                                    'rgba(16, 185, 129, 1)'
+                                ],
+                                borderWidth: 1
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+                
+                console.log("Charts initialized");
+            } catch (error) {
+                console.error("Error initializing charts:", error);
+            }
+        }
+
+        // Function to update charts
+        function updateCharts() {
+            try {
+                console.log("Updating charts");
+                
+                if (!simulationData.charts.performance || !simulationData.charts.modifications) {
+                    console.warn("Charts not initialized yet");
+                    return;
+                }
+                
+                // Update performance chart
+                const performanceChart = simulationData.charts.performance;
+                
+                // Update labels
+                performanceChart.data.labels = Array.from(
+                    { length: simulationData.metrics.firstPassRate.history.length }, 
+                    (_, i) => `Day ${i}`
+                );
+                
+                // Update datasets
+                performanceChart.data.datasets[0].data = simulationData.metrics.firstPassRate.history;
+                performanceChart.data.datasets[1].data = simulationData.metrics.dso.history;
+                performanceChart.data.datasets[2].data = simulationData.metrics.denialRate.history;
+                performanceChart.data.datasets[3].data = simulationData.metrics.appealSuccess.history;
+                
+                // Update the chart
+                performanceChart.update();
+                
+                // Update modifications chart
+                const modificationsChart = simulationData.charts.modifications;
+                
+                // Count modifications by type
+                let tier1to2Count = 0;
+                let tier2to3Count = 0;
+                
+                // Count from activity log
+                simulationData.activityLog.forEach(entry => {
+                    if (entry.message.includes('Modified') && entry.tier === 1) {
+                        tier1to2Count++;
+                    } else if (entry.message.includes('Modified') && entry.tier === 2) {
+                        tier2to3Count++;
+                    }
+                });
+                
+                // Update data
+                modificationsChart.data.datasets[0].data = [tier1to2Count, tier2to3Count];
+                
+                // Update the chart
+                modificationsChart.update();
+                
+                console.log("Charts updated");
+            } catch (error) {
+                console.error("Error updating charts:", error);
             }
         }
     </script>
