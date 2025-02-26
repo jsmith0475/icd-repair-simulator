@@ -533,6 +533,435 @@
             50% { box-shadow: 0 0 10px 3px rgba(16, 185, 129, 0.7); }
             100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
         }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(3px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.show {
+            display: block;
+            opacity: 1;
+        }
+
+        .modal-content {
+            position: relative;
+            background-color: var(--bg-light);
+            margin: 5% auto;
+            padding: 0;
+            width: 80%;
+            max-width: 900px;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+            overflow: hidden;
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            padding: 1rem;
+            background: linear-gradient(to right, var(--tertiary), var(--secondary));
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        /* Thought Process Visualization */
+        .agent-thought-process {
+            margin-bottom: 2rem;
+        }
+
+        .thought-bubble {
+            position: relative;
+            background-color: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-top: 1rem;
+            font-style: italic;
+            color: var(--gray-dark);
+            line-height: 1.6;
+        }
+
+        .thought-bubble::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 30px;
+            width: 20px;
+            height: 20px;
+            background-color: white;
+            transform: rotate(45deg);
+            box-shadow: -2px -2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Prompt Diff Visualization */
+        .prompt-diff-container {
+            margin-bottom: 2rem;
+        }
+
+        .code-diff {
+            background-color: #1f2937;
+            color: #f3f4f6;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+
+        .code-diff .line {
+            display: block;
+            position: relative;
+            padding: 0.25rem 0.5rem;
+            margin: 0.25rem 0;
+            border-radius: 0.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .code-diff .line:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .code-diff .line-number {
+            display: inline-block;
+            width: 2rem;
+            color: #9ca3af;
+            user-select: none;
+        }
+
+        .code-diff .line.added {
+            background-color: rgba(16, 185, 129, 0.2);
+            animation: highlight-green 2s ease-in-out;
+        }
+
+        .code-diff .line.removed {
+            background-color: rgba(239, 68, 68, 0.2);
+            text-decoration: line-through;
+            animation: highlight-red 2s ease-in-out;
+        }
+
+        .code-diff .line.context {
+            color: #9ca3af;
+        }
+
+        .code-diff .highlight-word {
+            background-color: rgba(16, 185, 129, 0.4);
+            padding: 0.1rem 0.25rem;
+            border-radius: 0.25rem;
+        }
+
+        /* Performance Impact Visualization */
+        .performance-impact {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .performance-metric {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .metric-label {
+            width: 40%;
+            font-weight: 500;
+        }
+
+        .metric-bar-container {
+            width: 50%;
+            height: 8px;
+            background-color: var(--gray-light);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .metric-bar {
+            height: 100%;
+            background: linear-gradient(to right, var(--primary), var(--primary-light));
+            border-radius: 4px;
+            transition: width 1.5s cubic-bezier(0.12, 0.8, 0.32, 1);
+        }
+
+        .metric-value {
+            width: 10%;
+            text-align: right;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .metric-improvement {
+            color: var(--success);
+            font-weight: 500;
+            margin-left: 0.5rem;
+        }
+
+        /* Animations */
+        @keyframes highlight-green {
+            0% { background-color: rgba(16, 185, 129, 0.6); }
+            100% { background-color: rgba(16, 185, 129, 0.2); }
+        }
+
+        @keyframes highlight-red {
+            0% { background-color: rgba(239, 68, 68, 0.6); }
+            100% { background-color: rgba(239, 68, 68, 0.2); }
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        .hierarchy-indicator.active .hierarchy-label {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-weight: bold;
+        }
+        
+        /* Modal Styles */
+        #prompt-modification-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        #prompt-modification-modal.show {
+            display: flex;
+            opacity: 1;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #fff;
+            width: 80%;
+            max-width: 1000px;
+            margin: auto;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #prompt-modification-modal.show .modal-content {
+            transform: scale(1);
+        }
+        
+        .modal-header {
+            background: linear-gradient(90deg, #0f3460, #1a1a2e);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #fff;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        
+        .close-modal:hover {
+            color: #ff6b6b;
+        }
+        
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        /* Agent Thought Process Styles */
+        .thought-bubble {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            position: relative;
+            border-left: 4px solid #4cc9f0;
+        }
+        
+        .thought-bubble p {
+            margin: 0;
+            line-height: 1.6;
+            color: #e2e2e2;
+        }
+        
+        /* Prompt Diff Styles */
+        .prompt-section {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: transform 0.3s ease;
+        }
+        
+        .prompt-section:hover {
+            transform: translateY(-5px);
+        }
+        
+        .prompt-section h4 {
+            margin-top: 0;
+            color: #e2e2e2;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+        
+        .old-prompt {
+            border-left: 4px solid #ff6b6b;
+        }
+        
+        .new-prompt {
+            border-left: 4px solid #4cc9f0;
+        }
+        
+        .prompt-section pre {
+            margin: 0;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #e2e2e2;
+            line-height: 1.5;
+        }
+        
+        /* Performance Impact Styles */
+        .performance-metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            transition: transform 0.2s ease;
+        }
+        
+        .performance-metric:hover {
+            transform: scale(1.02);
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+        
+        .metric-name {
+            font-weight: bold;
+            color: #e2e2e2;
+        }
+        
+        .metric-values {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .metric-before {
+            color: #aaa;
+        }
+        
+        .metric-arrow {
+            color: #aaa;
+        }
+        
+        .metric-after {
+            color: #fff;
+            font-weight: bold;
+        }
+        
+        .metric-change {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .metric-change.positive {
+            background-color: rgba(46, 213, 115, 0.3);
+            color: #2ed573;
+        }
+        
+        .metric-change.negative {
+            background-color: rgba(255, 71, 87, 0.3);
+            color: #ff4757;
+        }
+        
+        /* Section Titles */
+        .section-title {
+            font-size: 1.2rem;
+            color: #fff;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 8px;
+        }
+        
+        /* Tooltip */
+        #tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
     </style>
 </head>
 <body>
@@ -544,13 +973,16 @@
     <div class="container">
         <div class="controls">
             <div class="control-group">
-                <button id="start-simulation">Start Simulation</button>
-                <button id="pause-simulation">Pause</button>
-                <button id="reset-simulation">Reset</button>
+                <button id="start-btn">Start Simulation</button>
+                <button id="reset-btn">Reset</button>
             </div>
             <div class="control-group">
-                <label for="simulation-speed">Speed:</label>
-                <input type="range" id="simulation-speed" min="1" max="10" value="5">
+                <label for="speed-control">Speed:</label>
+                <input type="range" id="speed-control" min="1" max="10" value="5">
+                <span id="speed-value">5x</span>
+            </div>
+            <div class="control-group">
+                <span>Day: <span id="current-day">0</span></span>
             </div>
         </div>
 
@@ -670,6 +1102,26 @@
 
     <div class="tooltip" id="tooltip"></div>
 
+    <!-- Prompt Modification Modal -->
+    <div id="prompt-modification-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Prompt Modification</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="section-title">Agent Thought Process</div>
+                <div id="agent-reasoning"></div>
+                
+                <div class="section-title">Prompt Changes</div>
+                <div id="prompt-diff"></div>
+                
+                <div class="section-title">Predicted Performance Impact</div>
+                <div id="performance-prediction"></div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         // Simulation data
@@ -698,6 +1150,93 @@
                     baseline: 61.3,
                     current: 67.3,
                     history: [61.3, 62.4, 63.8, 64.9, 65.7, 66.5, 67.3]
+                }
+            },
+            // Add prompt modification data
+            promptModifications: {
+                // Strategic Alignment Agent (Tier 1) modifying Billing Optimization Agent (Tier 2)
+                'strategic-alignment-billing-optimization': {
+                    day: 4,
+                    sourceAgent: 'strategic-alignment',
+                    targetAgent: 'billing-optimization',
+                    sourceTier: 1,
+                    targetTier: 2,
+                    reasoning: "Analysis of billing agent performance shows a pattern of denials related to medical necessity documentation. While the Billing Optimization Agent is effectively addressing coding accuracy, it needs to prioritize medical necessity improvements to align with our strategic goal of reducing denial rates.",
+                    oldPrompt: `Role: You are a Billing Optimization Agent responsible for improving Billing & Coding Agent performance.
+
+Instructions:
+1. Monitor billing agent accuracy and efficiency metrics
+2. Identify patterns in coding errors and inefficiencies
+3. Modify billing agent prompts to address identified issues
+4. Measure performance changes after modifications`,
+                    newPrompt: `Role: You are a Billing Optimization Agent responsible for improving Billing & Coding Agent performance.
+
+Instructions:
+1. Monitor billing agent accuracy and efficiency metrics
+2. Identify patterns in coding errors and inefficiencies
+3. Modify billing agent prompts to address identified issues
+4. Focus on optimizations that improve medical necessity documentation
+5. Measure performance changes after modifications`,
+                    performanceImpact: {
+                        optimizationSuccess: { before: '76.2%', after: '84.7%', change: '+8.5%' },
+                        denialRate: { before: '8.6%', after: '8.5%', change: '-0.1%' }
+                    }
+                },
+                // Billing Optimization Agent (Tier 2) modifying Billing & Coding Agent (Tier 3)
+                'billing-optimization-billing-coding': {
+                    day: 3,
+                    sourceAgent: 'billing-optimization',
+                    targetAgent: 'billing-coding',
+                    sourceTier: 2,
+                    targetTier: 3,
+                    reasoning: "After analyzing 874 coded claims, I've identified that 23% of denials are due to insufficient medical necessity documentation. Adding a step to check for commonly missed associated diagnoses will improve claim acceptance rates and reduce the need for appeals.",
+                    oldPrompt: `Role: You are a Billing & Coding Agent responsible for validating and optimizing billing codes.
+
+Instructions:
+1. Extract ICD-10 and CPT codes from clinical documentation
+2. Validate codes against payer guidelines
+3. Flag incomplete or incorrect coding
+4. Format and prepare claims for submission`,
+                    newPrompt: `Role: You are a Billing & Coding Agent responsible for validating and optimizing billing codes.
+
+Instructions:
+1. Extract ICD-10 and CPT codes from clinical documentation
+2. Validate codes against payer guidelines
+3. Flag incomplete or incorrect coding
+4. Format and prepare claims for submission
+5. Check for commonly missed associated diagnoses to support medical necessity`,
+                    performanceImpact: {
+                        accuracyRate: { before: '92.8%', after: '93.9%', change: '+1.1%' },
+                        denialRate: { before: '8.7%', after: '8.6%', change: '-0.1%' }
+                    }
+                },
+                // Claims Optimization Agent (Tier 2) modifying Claims Submission Agent (Tier 3)
+                'claims-optimization-claims-submission': {
+                    day: 2,
+                    sourceAgent: 'claims-optimization',
+                    targetAgent: 'claims-submission',
+                    sourceTier: 2,
+                    targetTier: 3,
+                    reasoning: "Analysis of claims processing shows that 8% of claims are at risk of missing timely filing deadlines. By prioritizing claims based on these deadlines, we can prevent revenue loss and improve cash flow metrics.",
+                    oldPrompt: `Role: You are a Claims Submission Agent responsible for preparing and submitting claims to payers.
+
+Instructions:
+1. Format claims according to payer specifications
+2. Submit claims through appropriate channels
+3. Track submission status
+4. Report errors and rejections`,
+                    newPrompt: `Role: You are a Claims Submission Agent responsible for preparing and submitting claims to payers.
+
+Instructions:
+1. Format claims according to payer specifications
+2. Prioritize claims based on timely filing deadlines
+3. Submit claims through appropriate channels
+4. Track submission status
+5. Report errors and rejections`,
+                    performanceImpact: {
+                        firstPassRate: { before: '75.4%', after: '76.3%', change: '+0.9%' },
+                        dso: { before: '27.5', after: '27.0', change: '-0.5 days' }
+                    }
                 }
             },
             agents: {
@@ -831,7 +1370,7 @@ Instructions:
 2. Validate codes against payer guidelines
 3. Flag incomplete or incorrect coding
 4. Format and prepare claims for submission
-5. <new-text>Check for commonly missed associated diagnoses to support medical necessity</new-text>`,
+5. Check for commonly missed associated diagnoses to support medical necessity`,
                         performance: { accuracyRate: '93.9%', processingTime: '3.6m' }
                     },
                     {
@@ -841,7 +1380,7 @@ Instructions:
 
 Instructions:
 1. Extract ICD-10 and CPT codes from clinical documentation
-2. <new-text>Begin with searching for primary diagnosis before addressing secondary conditions</new-text>
+2. Begin with searching for primary diagnosis before addressing secondary conditions
 3. Validate codes against payer guidelines
 4. Flag incomplete or incorrect coding
 5. Format and prepare claims for submission
@@ -869,7 +1408,7 @@ Instructions:
 
 Instructions:
 1. Format claims according to payer specifications
-2. <new-text>Prioritize claims based on timely filing deadlines</new-text>
+2. Prioritize claims based on timely filing deadlines
 3. Submit claims through appropriate channels
 4. Track submission status
 5. Report errors and rejections`,
@@ -883,7 +1422,7 @@ Instructions:
 Instructions:
 1. Format claims according to payer specifications
 2. Prioritize claims based on timely filing deadlines
-3. <new-text>Check for payer-specific formatting requirements before submission</new-text>
+3. Check for payer-specific formatting requirements before submission
 4. Submit claims through appropriate channels
 5. Track submission status
 6. Report errors and rejections`,
@@ -898,7 +1437,7 @@ Instructions:
 1. Format claims according to payer specifications
 2. Prioritize claims based on timely filing deadlines
 3. Check for payer-specific formatting requirements before submission
-4. <new-text>Verify patient insurance eligibility status before submission</new-text>
+4. Verify patient insurance eligibility status before submission
 5. Submit claims through appropriate channels
 6. Track submission status
 7. Report errors and rejections`,
@@ -925,7 +1464,7 @@ Instructions:
 
 Instructions:
 1. Analyze denial reasons using payer codes
-2. <new-text>Categorize denials by type to apply appropriate appeal strategies</new-text>
+2. Categorize denials by type to apply appropriate appeal strategies
 3. Create appeal letters based on templates
 4. Track appeals and resubmissions
 5. Report appeal outcomes`,
@@ -939,7 +1478,7 @@ Instructions:
 Instructions:
 1. Analyze denial reasons using payer codes
 2. Categorize denials by type to apply appropriate appeal strategies
-3. <new-text>Include specific clinical documentation references in appeal letters</new-text>
+3. Include specific clinical documentation references in appeal letters
 4. Create appeal letters based on templates
 5. Track appeals and resubmissions
 6. Report appeal outcomes`,
@@ -968,7 +1507,7 @@ Instructions:
 1. Monitor billing agent accuracy and efficiency metrics
 2. Identify patterns in coding errors and inefficiencies
 3. Modify billing agent prompts to address identified issues
-4. <new-text>Focus on optimizations that improve medical necessity documentation</new-text>
+4. Focus on optimizations that improve medical necessity documentation
 5. Measure performance changes after modifications`,
                         performance: { optimizationSuccess: '84.7%' }
                     }
@@ -986,10 +1525,9 @@ Instructions:
 
         // Initialize simulation controls
         document.addEventListener('DOMContentLoaded', function() {
-            const startButton = document.getElementById('start-simulation');
-            const pauseButton = document.getElementById('pause-simulation');
-            const resetButton = document.getElementById('reset-simulation');
-            const speedControl = document.getElementById('simulation-speed');
+            const startButton = document.getElementById('start-btn');
+            const resetButton = document.getElementById('reset-btn');
+            const speedControl = document.getElementById('speed-control');
 
             let simulationInterval;
             
@@ -1224,186 +1762,425 @@ Instructions:
             }
             
             // Simulate a day in the RCM process
-            function simulateDay(day) {
-                // Get predefined activity for this day
-                const dayActivities = simulationData.activityLog.filter(entry => entry.day === day);
+            function simulateDay() {
+                if (!simulationData.isRunning) return;
                 
-                // Add each activity to the log
-                dayActivities.forEach(activity => {
-                    addLogEntry(
-                        activity.day,
-                        activity.agent,
-                        activity.tier,
-                        activity.message
-                    );
+                simulationData.currentDay++;
+                document.getElementById('current-day').textContent = simulationData.currentDay;
+                
+                // Update metrics
+                if (simulationData.currentDay < simulationData.metrics.firstPassRate.history.length) {
+                    updateMetrics(simulationData.currentDay);
+                } else {
+                    // Generate new metrics
+                    const newMetrics = {
+                        firstPassRate: Math.min(95, simulationData.metrics.firstPassRate.current + (Math.random() * 0.3 - 0.05)),
+                        dso: Math.max(15, simulationData.metrics.dso.current - (Math.random() * 0.3 - 0.05)),
+                        denialRate: Math.max(5, simulationData.metrics.denialRate.current - (Math.random() * 0.1 - 0.02)),
+                        appealSuccess: Math.min(95, simulationData.metrics.appealSuccess.current + (Math.random() * 0.3 - 0.05))
+                    };
                     
-                    // Highlight the active agent card
-                    const agentCard = document.querySelector(`.agent-card[data-id="${activity.agent}"]`);
-                    if (agentCard) {
-                        agentCard.classList.add('active');
+                    // Update current metrics
+                    simulationData.metrics.firstPassRate.current = newMetrics.firstPassRate;
+                    simulationData.metrics.dso.current = newMetrics.dso;
+                    simulationData.metrics.denialRate.current = newMetrics.denialRate;
+                    simulationData.metrics.appealSuccess.current = newMetrics.appealSuccess;
+                    
+                    // Add to history
+                    simulationData.metrics.firstPassRate.history.push(newMetrics.firstPassRate);
+                    simulationData.metrics.dso.history.push(newMetrics.dso);
+                    simulationData.metrics.denialRate.history.push(newMetrics.denialRate);
+                    simulationData.metrics.appealSuccess.history.push(newMetrics.appealSuccess);
+                    
+                    updateMetrics(simulationData.currentDay);
+                }
+                
+                // Generate random activities
+                generateRandomActivities();
+                
+                // Check for prompt modifications on specific days
+                checkForPromptModifications();
+                
+                // Schedule next day
+                setTimeout(simulateDay, 1000 / simulationData.speed);
+            }
+            
+            // Function to check for prompt modifications
+            function checkForPromptModifications() {
+                // Check each modification to see if it should be triggered on the current day
+                for (const [modId, modification] of Object.entries(simulationData.promptModifications)) {
+                    if (modification.day === simulationData.currentDay) {
+                        // Get source and target agent elements
+                        const sourceAgentId = modification.sourceAgent;
+                        const targetAgentId = modification.targetAgent;
+                        
+                        // Highlight the agents
+                        highlightAgent(sourceAgentId);
+                        setTimeout(() => highlightAgent(targetAgentId), 1000);
+                        
+                        // Show the modification flow
+                        showModificationFlow(sourceAgentId, targetAgentId);
+                        
+                        // Add log entry
+                        const sourceTierName = getTierName(modification.sourceTier);
+                        const targetTierName = getTierName(modification.targetTier);
+                        
+                        addLogEntry(
+                            simulationData.currentDay,
+                            `${getAgentName(sourceAgentId)} (${sourceTierName})`,
+                            modification.sourceTier,
+                            `Modified prompt for ${getAgentName(targetAgentId)} (${targetTierName})`
+                        );
+                        
+                        // Show the prompt modification modal after a delay
                         setTimeout(() => {
-                            agentCard.classList.remove('active');
+                            openPromptModificationModal(modId);
                         }, 2000);
                     }
-                    
-                    // Show hierarchical relationships for modifications
-                    if (activity.message.toLowerCase().includes('modified') && activity.tier === 2) {
-                        // Tier 2 agent modifying a Tier 3 agent
-                        showModificationFlow(activity.agent, getTargetAgentFromMessage(activity.message), 2, 3);
-                    } else if (activity.message.toLowerCase().includes('modified') && activity.tier === 1) {
-                        // Tier 1 agent modifying a Tier 2 agent
-                        showModificationFlow(activity.agent, getTargetAgentFromMessage(activity.message), 1, 2);
-                    }
-                });
-                
-                // Update metrics for this day
-                updateMetrics();
-            }
-            
-            // Extract target agent ID from message
-            function getTargetAgentFromMessage(message) {
-                // This is a simple implementation - in a real system, you'd have more structured data
-                if (message.includes('Billing & Coding Agent')) {
-                    return 'billing-coding';
-                } else if (message.includes('Claims Submission Agent')) {
-                    return 'claims-submission';
-                } else if (message.includes('Denials & Appeals Agent')) {
-                    return 'denials-appeals';
-                } else if (message.includes('Billing Optimization Agent')) {
-                    return 'billing-optimization';
-                } else if (message.includes('Claims Optimization Agent')) {
-                    return 'claims-optimization';
-                } else if (message.includes('Appeals Optimization Agent')) {
-                    return 'appeals-optimization';
                 }
-                return null;
             }
             
-            // Show modification flow between agents
-            function showModificationFlow(sourceAgentId, targetAgentId, sourceTier, targetTier) {
-                if (!sourceAgentId || !targetAgentId) return;
+            // Helper function to get tier name
+            function getTierName(tierNumber) {
+                switch(tierNumber) {
+                    case 1: return 'Tier 1';
+                    case 2: return 'Tier 2';
+                    case 3: return 'Tier 3';
+                    default: return 'Unknown Tier';
+                }
+            }
+            
+            // Helper function to get agent name
+            function getAgentName(agentId) {
+                // Convert kebab-case to Title Case
+                return agentId
+                    .split('-')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join(' ');
+            }
+
+            function generateRandomActivities() {
+                // Define possible activities for each tier
+                const tier1Activities = [
+                    "Analyzing system performance metrics",
+                    "Evaluating strategic alignment of tier 2 agents",
+                    "Reviewing compliance standards",
+                    "Optimizing metacognitive frameworks"
+                ];
                 
-                // Get agent elements
-                const sourceAgent = document.querySelector(`.agent-card[data-id="${sourceAgentId}"]`);
-                const targetAgent = document.querySelector(`.agent-card[data-id="${targetAgentId}"]`);
+                const tier2Activities = [
+                    "Analyzing worker agent performance",
+                    "Identifying optimization opportunities",
+                    "Implementing process improvements",
+                    "Reviewing denial patterns"
+                ];
                 
-                if (!sourceAgent || !targetAgent) return;
+                const tier3Activities = [
+                    "Processing claim #${Math.floor(Math.random() * 10000)}",
+                    "Coding encounter for patient #${Math.floor(Math.random() * 10000)}",
+                    "Appealing denied claim #${Math.floor(Math.random() * 10000)}",
+                    "Submitting batch of ${Math.floor(Math.random() * 50) + 10} claims"
+                ];
                 
-                // Create a temporary connection line
-                const connection = document.createElement('div');
-                connection.className = 'agent-connection';
-                document.body.appendChild(connection);
+                // Get random agents from each tier
+                const tier1Agents = simulationData.agents.tier1;
+                const tier2Agents = simulationData.agents.tier2;
+                const tier3Agents = simulationData.agents.tier3;
                 
-                // Get positions
-                const sourceRect = sourceAgent.getBoundingClientRect();
-                const targetRect = targetAgent.getBoundingClientRect();
+                // Randomly decide which tiers will have activity this day
+                const tier1Active = Math.random() < 0.3; // 30% chance
+                const tier2Active = Math.random() < 0.5; // 50% chance
+                const tier3Active = Math.random() < 0.8; // 80% chance
                 
-                // Calculate positions
-                const sourceX = sourceRect.left + sourceRect.width / 2;
-                const sourceY = sourceRect.bottom;
-                const targetX = targetRect.left + targetRect.width / 2;
-                const targetY = targetRect.top;
+                // Generate activities
+                if (tier1Active && tier1Agents.length > 0) {
+                    const randomAgent = tier1Agents[Math.floor(Math.random() * tier1Agents.length)];
+                    const randomActivity = tier1Activities[Math.floor(Math.random() * tier1Activities.length)];
+                    
+                    addLogEntry(
+                        simulationData.currentDay,
+                        getAgentName(randomAgent.id),
+                        1,
+                        randomActivity
+                    );
+                    
+                    highlightAgent(randomAgent.id);
+                }
                 
-                // Set connection style
-                connection.style.left = sourceX + 'px';
-                connection.style.top = sourceY + 'px';
-                connection.style.width = '3px';
-                connection.style.height = (targetY - sourceY) + 'px';
+                if (tier2Active && tier2Agents.length > 0) {
+                    const randomAgent = tier2Agents[Math.floor(Math.random() * tier2Agents.length)];
+                    const randomActivity = tier2Activities[Math.floor(Math.random() * tier2Activities.length)];
+                    
+                    addLogEntry(
+                        simulationData.currentDay,
+                        getAgentName(randomAgent.id),
+                        2,
+                        randomActivity
+                    );
+                    
+                    highlightAgent(randomAgent.id);
+                }
                 
-                // Add animation class
-                connection.classList.add('connection-active');
+                if (tier3Active && tier3Agents.length > 0) {
+                    const randomAgent = tier3Agents[Math.floor(Math.random() * tier3Agents.length)];
+                    const randomActivity = tier3Activities[Math.floor(Math.random() * tier3Activities.length)];
+                    
+                    // Evaluate the template string
+                    const activity = randomActivity.replace(/\${([^}]+)}/g, (match, expr) => {
+                        return eval(expr);
+                    });
+                    
+                    addLogEntry(
+                        simulationData.currentDay,
+                        getAgentName(randomAgent.id),
+                        3,
+                        activity
+                    );
+                    
+                    highlightAgent(randomAgent.id);
+                }
+            }
+
+            // Start the simulation
+            function startSimulation() {
+                if (simulationData.isRunning) return;
                 
-                // Remove after animation
+                simulationData.isRunning = true;
+                document.getElementById('start-btn').textContent = 'Pause Simulation';
+                
+                // Reset if we've reached the end
+                if (simulationData.currentDay >= 30) {
+                    simulationData.currentDay = 0;
+                    resetSimulation();
+                }
+                
+                // Start simulating days
+                simulateDay();
+            }
+            
+            // Pause the simulation
+            function pauseSimulation() {
+                simulationData.isRunning = false;
+                document.getElementById('start-btn').textContent = 'Continue Simulation';
+            }
+            
+            // Reset the simulation
+            function resetSimulation() {
+                simulationData.currentDay = 0;
+                simulationData.isRunning = false;
+                document.getElementById('current-day').textContent = '0';
+                document.getElementById('start-btn').textContent = 'Start Simulation';
+                
+                // Clear the log
+                document.getElementById('log-container').innerHTML = '';
+                
+                // Reset metrics to baseline
+                simulationData.metrics.firstPassRate.current = simulationData.metrics.firstPassRate.baseline;
+                simulationData.metrics.dso.current = simulationData.metrics.dso.baseline;
+                simulationData.metrics.denialRate.current = simulationData.metrics.denialRate.baseline;
+                simulationData.metrics.appealSuccess.current = simulationData.metrics.appealSuccess.baseline;
+                
+                // Reset history to just baseline
+                simulationData.metrics.firstPassRate.history = [simulationData.metrics.firstPassRate.baseline];
+                simulationData.metrics.dso.history = [simulationData.metrics.dso.baseline];
+                simulationData.metrics.denialRate.history = [simulationData.metrics.denialRate.baseline];
+                simulationData.metrics.appealSuccess.history = [simulationData.metrics.appealSuccess.baseline];
+                
+                updateMetrics(0);
+                
+                // Add initial log entry
+                addLogEntry(0, 'System', 1, 'Simulation initialized');
+                
+                // Render agent cards
+                renderAgentCards();
+            }
+            
+            // Toggle simulation
+            function toggleSimulation() {
+                if (simulationData.isRunning) {
+                    pauseSimulation();
+                } else {
+                    startSimulation();
+                }
+            }
+
+            // Add event listeners
+            startButton.addEventListener('click', toggleSimulation);
+            resetButton.addEventListener('click', resetSimulation);
+            speedControl.addEventListener('input', function(e) {
+                simulationData.speed = parseInt(e.target.value);
+                document.getElementById('speed-value').textContent = simulationData.speed + 'x';
+            });
+
+            // Initialize
+            resetSimulation();
+        });
+
+        // Modal control functions
+        function openPromptModificationModal(modificationId) {
+            const modal = document.getElementById('prompt-modification-modal');
+            const modification = simulationData.promptModifications[modificationId];
+            
+            if (!modification) return;
+            
+            // Set modal title
+            document.getElementById('modal-title').textContent = 'Prompt Modification';
+            
+            // Populate modal content
+            populateModalContent(modification);
+            
+            // Show modal
+            modal.classList.add('show');
+        }
+        
+        function closePromptModificationModal() {
+            const modal = document.getElementById('prompt-modification-modal');
+            modal.classList.remove('show');
+        }
+        
+        // Function to populate modal content with modification details
+        function populateModalContent(modification) {
+            // Populate agent thought process
+            const thoughtProcessEl = document.getElementById('agent-reasoning');
+            thoughtProcessEl.innerHTML = `
+                <div class="thought-bubble">
+                    <p>${modification.reasoning}</p>
+                </div>
+            `;
+            
+            // Populate prompt changes
+            const promptChangesEl = document.getElementById('prompt-diff');
+            promptChangesEl.innerHTML = '';
+            
+            // Create old prompt section
+            const oldPromptDiv = document.createElement('div');
+            oldPromptDiv.className = 'prompt-section old-prompt';
+            oldPromptDiv.innerHTML = `
+                <h4>Original Prompt</h4>
+                <pre>${modification.oldPrompt}</pre>
+            `;
+            promptChangesEl.appendChild(oldPromptDiv);
+            
+            // Create new prompt section
+            const newPromptDiv = document.createElement('div');
+            newPromptDiv.className = 'prompt-section new-prompt';
+            newPromptDiv.innerHTML = `
+                <h4>Modified Prompt</h4>
+                <pre>${modification.newPrompt}</pre>
+            `;
+            promptChangesEl.appendChild(newPromptDiv);
+            
+            // Populate performance impact
+            const performanceImpactEl = document.getElementById('performance-prediction');
+            performanceImpactEl.innerHTML = '';
+            
+            // Create performance metrics
+            for (const [metric, values] of Object.entries(modification.performanceImpact)) {
+                const metricDiv = document.createElement('div');
+                metricDiv.className = 'performance-metric';
+                
+                // Format metric name
+                const formattedMetric = metric
+                    .replace(/([A-Z])/g, ' $1')
+                    .replace(/^./, str => str.toUpperCase())
+                    .replace(/([A-Z])\s/g, '$1');
+                
+                metricDiv.innerHTML = `
+                    <div class="metric-name">${formattedMetric}</div>
+                    <div class="metric-values">
+                        <div class="metric-before">${values.before}</div>
+                        <div class="metric-arrow">→</div>
+                        <div class="metric-after">${values.after}</div>
+                        <div class="metric-change ${values.change.includes('+') ? 'positive' : 'negative'}">${values.change}</div>
+                    </div>
+                `;
+                performanceImpactEl.appendChild(metricDiv);
+            }
+        }
+        
+        // Add event listener to close button
+        document.addEventListener('DOMContentLoaded', function() {
+            const closeButton = document.querySelector('.close-modal');
+            closeButton.addEventListener('click', closePromptModificationModal);
+            
+            // Close modal when clicking outside of it
+            window.addEventListener('click', function(event) {
+                const modal = document.getElementById('prompt-modification-modal');
+                if (event.target === modal) {
+                    closePromptModificationModal();
+                }
+            });
+        });
+
+        // Function to highlight an agent card
+        function highlightAgent(agentId) {
+            const agentCard = document.querySelector(`.agent-card[data-id="${agentId}"]`);
+            if (agentCard) {
+                agentCard.classList.add('active');
                 setTimeout(() => {
-                    connection.remove();
+                    agentCard.classList.remove('active');
                 }, 2000);
-                
-                // Highlight the hierarchy indicator between these tiers
-                const hierarchyIndicator = document.querySelectorAll('.hierarchy-indicator')[sourceTier === 1 ? 0 : 1];
+            }
+        }
+        
+        // Function to show modification flow between agents
+        function showModificationFlow(sourceAgentId, targetAgentId) {
+            if (!sourceAgentId || !targetAgentId) return;
+            
+            // Get agent elements
+            const sourceAgent = document.querySelector(`.agent-card[data-id="${sourceAgentId}"]`);
+            const targetAgent = document.querySelector(`.agent-card[data-id="${targetAgentId}"]`);
+            
+            if (!sourceAgent || !targetAgent) return;
+            
+            // Create a temporary connection line
+            const connection = document.createElement('div');
+            connection.className = 'agent-connection';
+            document.body.appendChild(connection);
+            
+            // Get positions
+            const sourceRect = sourceAgent.getBoundingClientRect();
+            const targetRect = targetAgent.getBoundingClientRect();
+            
+            // Calculate positions
+            const sourceX = sourceRect.left + sourceRect.width / 2;
+            const sourceY = sourceRect.bottom;
+            const targetX = targetRect.left + targetRect.width / 2;
+            const targetY = targetRect.top;
+            
+            // Set connection style
+            connection.style.left = sourceX + 'px';
+            connection.style.top = sourceY + 'px';
+            connection.style.width = '3px';
+            connection.style.height = (targetY - sourceY) + 'px';
+            
+            // Add animation class
+            connection.classList.add('connection-active');
+            
+            // Remove after animation
+            setTimeout(() => {
+                connection.remove();
+            }, 2000);
+            
+            // Determine which hierarchy indicator to highlight
+            let hierarchyIndex;
+            if (sourceAgentId.includes('strategic') || sourceAgentId.includes('performance') || sourceAgentId.includes('compliance')) {
+                // Tier 1 to Tier 2
+                hierarchyIndex = 0;
+            } else {
+                // Tier 2 to Tier 3
+                hierarchyIndex = 1;
+            }
+            
+            // Highlight the hierarchy indicator
+            const hierarchyIndicator = document.querySelectorAll('.hierarchy-indicator')[hierarchyIndex];
+            if (hierarchyIndicator) {
                 hierarchyIndicator.classList.add('active');
                 setTimeout(() => {
                     hierarchyIndicator.classList.remove('active');
                 }, 2000);
             }
-            
-            function startSimulation() {
-                if (!simulationData.isRunning) {
-                    simulationData.isRunning = true;
-                    startButton.textContent = 'Running...';
-                    pauseButton.disabled = false;
-                    
-                    // Run simulation steps at the specified speed
-                    simulationInterval = setInterval(() => {
-                        if (simulationData.currentDay < 7) {  // 7-day simulation
-                            simulationData.currentDay++;
-                            simulateDay(simulationData.currentDay);
-                            
-                            // If we've reached the end of the simulation
-                            if (simulationData.currentDay >= 7) {
-                                clearInterval(simulationInterval);
-                                simulationData.isRunning = false;
-                                startButton.textContent = 'Start Simulation';
-                                pauseButton.disabled = true;
-                            }
-                        }
-                    }, 2000 / simulationData.speed);
-                }
-            }
-
-            function pauseSimulation() {
-                if (simulationData.isRunning) {
-                    clearInterval(simulationInterval);
-                    simulationData.isRunning = false;
-                    startButton.textContent = 'Resume';
-                }
-            }
-
-            function resetSimulation() {
-                clearInterval(simulationInterval);
-                simulationData.isRunning = false;
-                simulationData.currentDay = 0;
-                simulationData.selectedAgent = null;
-                
-                startButton.textContent = 'Start Simulation';
-                pauseButton.disabled = true;
-                
-                // Reset UI
-                document.getElementById('agent-detail').style.display = 'none';
-                document.querySelectorAll('.agent-card').forEach(card => {
-                    card.classList.remove('selected');
-                });
-                
-                // Clear log
-                document.getElementById('log-container').innerHTML = '';
-                
-                // Reset metrics to baseline
-                updateMetrics();
-                
-                // Add initial log entry
-                addLogEntry(0, 'System', 1, 'Simulation reset');
-            }
-
-            // Add event listeners
-            startButton.addEventListener('click', startSimulation);
-            pauseButton.addEventListener('click', pauseSimulation);
-            resetButton.addEventListener('click', resetSimulation);
-            speedControl.addEventListener('input', function() {
-                simulationData.speed = parseInt(this.value);
-                if (simulationData.isRunning) {
-                    pauseSimulation();
-                    startSimulation();
-                }
-            });
-
-            // Initialize UI
-            renderAgentCards();
-            updateMetrics();
-            initCharts();
-            pauseButton.disabled = true;
-            
-            // Add initial log entry
-            addLogEntry(0, 'System', 1, 'Simulation initialized');
-        });
+        }
     </script>
 </body>
 </html>
