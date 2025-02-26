@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recursive Metacognitive Agent Simulation for RCM</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --secondary: #059669;
+            --secondary-light: #10b981;
+            --secondary-dark: #047857;
+            --tertiary: #7c3aed;
+            --tertiary-light: #8b5cf6;
+            --tertiary-dark: #6d28d9;
+            --bg-light: #f9fafb;
+            --text-dark: #1f2937;
+            --text-light: #f3f4f6;
+            --gray-light: #e5e7eb;
+            --gray-med: #9ca3af;
+            --gray-dark: #4b5563;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: var(--text-dark);
+            background-color: var(--bg-light);
+        }
+
+        header {
+            background-color: var(--primary);
+            color: var(--text-light);
+            padding: 1rem;
+            text-align: center;
+        }
+
+        h1, h2, h3, h4 {
+            margin-top: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--primary-light);
+        }
+
+        button:active {
+            background-color: var(--primary-dark);
+        }
+
+        button.success {
+            background-color: var(--success);
+        }
+
+        button.warning {
+            background-color: var(--warning);
+        }
+
+        button.error {
+            background-color: var(--error);
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .metric-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+
+        .simulation-area {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .agent-hierarchy {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .agent-tier {
+            position: relative;
+        }
+
+        .tier-header {
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tier-1 .tier-header h3 {
+            color: var(--tertiary);
+        }
+
+        .tier-2 .tier-header h3 {
+            color: var(--secondary);
+        }
+
+        .tier-3 .tier-header h3 {
+            color: var(--primary);
+        }
+
+        .tier-indicator {
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+        }
+
+        .tier-1 .tier-indicator {
+            background-color: var(--tertiary);
+        }
+
+        .tier-2 .tier-indicator {
+            background-color: var(--secondary);
+        }
+
+        .tier-3 .tier-indicator {
+            background-color: var(--primary);
+        }
+
+        .agents-container {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .agent-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            width: calc(25% - 1rem);
+            min-width: 250px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .agent-card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .agent-card.selected {
+            box-shadow: 0 0 0 2px var(--primary), 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .tier-1 .agent-card {
+            border-top: 4px solid var(--tertiary);
+        }
+
+        .tier-2 .agent-card {
+            border-top: 4px solid var(--secondary);
+        }
+
+        .tier-3 .agent-card {
+            border-top: 4px solid var(--primary);
+        }
+
+        .agent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .agent-title {
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .agent-performance {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .performance-improving {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .performance-stable {
+            background-color: #e0f2fe;
+            color: #075985;
+        }
+
+        .performance-declining {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .agent-description {
+            color: var(--gray-dark);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+
+        .agent-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .agent-stat {
+            background-color: var(--gray-light);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+        }
+
+        .agent-activity {
+            font-size: 0.875rem;
+            color: var(--gray-dark);
+            margin: 0;
+        }
+
+        .prompt-history {
+            margin-top: 2rem;
+        }
+
+        .prompt-entry {
+            border-left: 3px solid var(--gray-med);
+            padding-left: 1rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .prompt-entry::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 0;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--primary);
+        }
+
+        .prompt-meta {
+            display: flex;
+            justify-content: space-between;
+            color: var(--gray-dark);
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .prompt-content {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            white-space: pre-wrap;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.875rem;
+        }
+
+        .prompt-content .highlight {
+            background-color: #fef3c7;
+            padding: 0 0.25rem;
+            border-radius: 0.25rem;
+        }
+
+        .prompt-content .new-text {
+            background-color: #dcfce7;
+            padding: 0 0.25rem;
+            border-radius: 0.25rem;
+        }
+
+        .prompt-content .removed-text {
+            background-color: #fee2e2;
+            text-decoration: line-through;
+            padding: 0 0.25rem;
+            border-radius: 0.25rem;
+        }
+
+        .activity-log {
+            margin-top: 2rem;
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--gray-light);
+            font-size: 0.875rem;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-entry .timestamp {
+            color: var(--gray-dark);
+            font-size: 0.75rem;
+            margin-right: 0.5rem;
+        }
+
+        .log-entry.tier-1 {
+            border-left: 3px solid var(--tertiary);
+        }
+
+        .log-entry.tier-2 {
+            border-left: 3px solid var(--secondary);
+        }
+
+        .log-entry.tier-3 {
+            border-left: 3px solid var(--primary);
+        }
+
+        .connection-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .chart-card {
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .chart-container {
+            height: 200px;
+        }
+
+        /* Tooltip styles */
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        @media (max-width: 768px) {
+            .agent-card {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Recursive Metacognitive Agent Simulation for RCM</h1>
+        <p>Interactive demonstration of a three-tiered agent architecture for Revenue Cycle Management</p>
+    </header>
+
+    <div class="container">
+        <div class="controls">
+            <div class="control-group">
+                <button id="start-simulation">Start Simulation</button>
+                <button id="pause-simulation">Pause</button>
+                <button id="reset-simulation">Reset</button>
+            </div>
+            <div class="control-group">
+                <label for="simulation-speed">Speed:</label>
+                <input type="range" id="simulation-speed" min="1" max="10" value="5">
+            </div>
+        </div>
+
+        <div class="metrics">
+            <div class="metric-card">
+                <h4>First Pass Rate</h4>
+                <div class="metric-value" id="first-pass-rate">78.2%</div>
+                <div class="metric-trend">↑ 3.7% from baseline</div>
+            </div>
+            <div class="metric-card">
+                <h4>Days Sales Outstanding</h4>
+                <div class="metric-value" id="dso">24.8</div>
+                <div class="metric-trend">↓ 11.2% from baseline</div>
+            </div>
+            <div class="metric-card">
+                <h4>Denial Rate</h4>
+                <div class="metric-value" id="denial-rate">8.4%</div>
+                <div class="metric-trend">↓ 5.1% from baseline</div>
+            </div>
+            <div class="metric-card">
+                <h4>Average Appeal Success</h4>
+                <div class="metric-value" id="appeal-success">67.3%</div>
+                <div class="metric-trend">↑ 9.8% from baseline</div>
+            </div>
+        </div>
+
+        <div class="simulation-area">
+            <div class="agent-hierarchy">
+                <!-- Tier 1: Recursive Metacognition Agents -->
+                <div class="agent-tier tier-1">
+                    <div class="tier-header">
+                        <div class="tier-indicator"></div>
+                        <h3>Tier 1: Recursive Metacognition Agents</h3>
+                    </div>
+                    <div class="agents-container" id="tier-1-agents">
+                        <!-- Agents will be inserted here by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Tier 2: Metacognition Agents -->
+                <div class="agent-tier tier-2">
+                    <div class="tier-header">
+                        <div class="tier-indicator"></div>
+                        <h3>Tier 2: Metacognition Agents</h3>
+                    </div>
+                    <div class="agents-container" id="tier-2-agents">
+                        <!-- Agents will be inserted here by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Tier 3: Worker Agents -->
+                <div class="agent-tier tier-3">
+                    <div class="tier-header">
+                        <div class="tier-indicator"></div>
+                        <h3>Tier 3: Worker Agents (AMI)</h3>
+                    </div>
+                    <div class="agents-container" id="tier-3-agents">
+                        <!-- Agents will be inserted here by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="agent-detail" style="display: none;">
+                <h3 id="detail-agent-name">Agent Name</h3>
+                <p id="detail-agent-description">Agent description goes here.</p>
+                
+                <div class="prompt-history">
+                    <h4>Prompt Evolution</h4>
+                    <div id="prompt-history-container">
+                        <!-- Prompt history will be inserted here by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-container">
+                <div class="chart-card">
+                    <h4>Performance Over Time</h4>
+                    <div class="chart-container">
+                        <canvas id="performance-chart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h4>Prompt Modifications</h4>
+                    <div class="chart-container">
+                        <canvas id="modifications-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="activity-log">
+                <h4>Activity Log</h4>
+                <div id="log-container">
+                    <!-- Log entries will be inserted here by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Simulation data
+        const simulationData = {
+            isRunning: false,
+            currentDay: 0,
+            speed: 5,
+            selectedAgent: null,
+            metrics: {
+                firstPassRate: {
+                    baseline: 75.4,
+                    current: 78.2,
+                    history: [75.4, 75.8, 76.3, 76.9, 77.4, 77.8, 78.2]
+                },
+                dso: {
+                    baseline: 27.9,
+                    current: 24.8,
+                    history: [27.9, 27.5, 27.0, 26.2, 25.7, 25.2, 24.8]
+                },
+                denialRate: {
+                    baseline: 8.85,
+                    current: 8.4,
+                    history: [8.85, 8.8, 8.7, 8.6, 8.5, 8.45, 8.4]
+                },
+                appealSuccess: {
+                    baseline: 61.3,
+                    current: 67.3,
+                    history: [61.3, 62.4, 63.8, 64.9, 65.7, 66.5, 67.3]
+                }
+            },
+            agents: {
+                tier1: [
+                    {
+                        id: 'strategic-alignment',
+                        name: 'Strategic Alignment Agent',
+                        description: 'Ensures all agent optimizations align with business goals and compliance requirements.',
+                        performance: 'stable',
+                        stats: {
+                            interventions: 12,
+                            alignmentScore: '97.3%'
+                        },
+                        lastActivity: 'Reviewed optimization proposal for Claims Optimization Agent'
+                    },
+                    {
+                        id: 'system-governance',
+                        name: 'System Governance Agent',
+                        description: 'Monitors and maintains system-wide rules and prevents unwanted emergent behaviors.',
+                        performance: 'improving',
+                        stats: {
+                            policies: 24,
+                            complianceScore: '99.1%'
+                        },
+                        lastActivity: 'Updated governance policy for denial rate optimization'
+                    }
+                ],
+                tier2: [
+                    {
+                        id: 'billing-optimization',
+                        name: 'Billing Optimization Agent',
+                        description: 'Optimizes billing and coding worker agent prompts based on performance metrics.',
+                        performance: 'improving',
+                        stats: {
+                            optimizations: 28,
+                            improvementRate: '8.7%'
+                        },
+                        lastActivity: 'Modified prompt to improve ICD-10 code accuracy'
+                    },
+                    {
+                        id: 'claims-optimization',
+                        name: 'Claims Optimization Agent',
+                        description: 'Enhances claims submission worker agent prompts for improved first-pass rates.',
+                        performance: 'improving',
+                        stats: {
+                            optimizations: 34,
+                            improvementRate: '7.2%'
+                        },
+                        lastActivity: 'Refined claim format detection logic'
+                    },
+                    {
+                        id: 'appeals-optimization',
+                        name: 'Appeals Optimization Agent',
+                        description: 'Tunes denials and appeals worker agent prompts based on successful appeals strategies.',
+                        performance: 'improving',
+                        stats: {
+                            optimizations: 19,
+                            improvementRate: '9.8%'
+                        },
+                        lastActivity: 'Enhanced appeal letter template generation'
+                    }
+                ],
+                tier3: [
+                    {
+                        id: 'rcm-orchestrator',
+                        name: 'RCM Orchestrator Agent',
+                        description: 'Oversees the entire RCM process, ensuring KPIs are met and managing agent interactions.',
+                        performance: 'stable',
+                        stats: {
+                            tasksManaaged: 1253,
+                            successRate: '96.8%'
+                        },
+                        lastActivity: 'Coordinated high-priority claim processing'
+                    },
+                    {
+                        id: 'billing-coding',
+                        name: 'Billing & Coding Agent',
+                        description: 'Validates and optimizes billing codes before claims submission.',
+                        performance: 'improving',
+                        stats: {
+                            claimsCoded: 874,
+                            accuracyRate: '95.3%'
+                        },
+                        lastActivity: 'Processed complex oncology procedure codes'
+                    },
+                    {
+                        id: 'denials-appeals',
+                        name: 'Denials & Appeals Agent',
+                        description: 'Manages denied claims and handles the appeals process.',
+                        performance: 'improving',
+                        stats: {
+                            appealsManaged: 138,
+                            successRate: '67.3%'
+                        },
+                        lastActivity: 'Generated appeal for medical necessity denial'
+                    },
+                    {
+                        id: 'claims-submission',
+                        name: 'Claims Submission Agent',
+                        description: 'Prepares and submits claims to payers.',
+                        performance: 'improving',
+                        stats: {
+                            claimsSubmitted: 912,
+                            firstPassRate: '78.2%'
+                        },
+                        lastActivity: 'Submitted batch of 47 claims to Blue Cross'
+                    }
+                ]
+            },
+            promptHistory: {
+                'billing-coding': [
+                    {
+                        day: 0,
+                        source: 'initialization',
+                        content: `Role: You are a Billing & Coding Agent responsible for validating and optimizing billing codes.
+
+Instructions:
+1. Extract ICD-10 and CPT codes from clinical documentation
+2. Validate codes against payer guidelines
+3. Flag incomplete or incorrect coding
+4. Format and prepare claims for submission`,
+                        performance: { accuracyRate: '92.8%', processingTime: '3.4m' }
+                    },
+                    {
+                        day: 3,
+                        source: 'billing-optimization',
+                        content: `Role: You are a Billing & Coding Agent responsible for validating and optimizing billing codes.
+
+Instructions:
+1. Extract ICD-10 and CPT codes from clinical documentation
+2. Validate codes against payer guidelines
+3. Flag incomplete or incorrect coding
+4. Format and prepare claims for submission
+5. <new-text>Check for commonly missed associated diagnoses to support medical necessity</new-text>`,
+                        performance: { accuracyRate: '93.9%', processingTime: '3.6m' }
+                    },
+                    {
+                        day: 5,
+                        source: 'billing-optimization',
+                        content: `Role: You are a Billing & Coding Agent responsible for validating and optimizing billing codes.
+
+Instructions:
+1. Extract ICD-10 and CPT codes from clinical documentation
+2. <new-text>Begin with searching for primary diagnosis before addressing secondary conditions</new-text>
+3. Validate codes against payer guidelines
+4. Flag incomplete or incorrect coding
+5. Format and prepare claims for submission
+6. Check for commonly missed associated diagnoses to support medical necessity`,
+                        performance: { accuracyRate: '95.3%', processingTime: '3.2m' }
+                    }
+                ],
+                'claims-submission': [
+                    {
+                        day: 0,
+                        source: 'initialization',
+                        content: `Role: You are a Claims Submission Agent responsible for preparing and submitting claims to payers.
+
+Instructions:
+1. Format claims according to payer specifications
+2. Submit claims through appropriate channels
+3. Track submission status
+4. Report errors and rejections`,
+                        performance: { firstPassRate: '75.4%', submissionTime: '1.2m' }
+                    },
+                    {
+                        day: 2,
+                        source: 'claims-optimization',
+                        content: `Role: You are a Claims Submission Agent responsible for preparing and submitting claims to payers.
+
+Instructions:
+1. Format claims according to payer specifications
+2. <new-text>Prioritize claims based on timely filing deadlines</new-text>
+3. Submit claims through appropriate channels
+4. Track submission status
+5. Report errors and rejections`,
+                        performance: { firstPassRate: '76.3%', submissionTime: '1.2m' }
+                    },
+                    {
+                        day: 4,
+                        source: 'claims-optimization',
+                        content: `Role: You are a Claims Submission Agent responsible for preparing and submitting claims to payers.
+
+Instructions:
+1. Format claims according to payer specifications
+2. Prioritize claims based on timely filing deadlines
+3. <new-text>Check for payer-specific formatting requirements before submission</new-text>
+4. Submit claims through appropriate channels
+5. Track submission status
+6. Report errors and rejections`,
+                        performance: { firstPassRate: '77.4%', submissionTime: '1.3m' }
+                    },
+                    {
+                        day: 6,
+                        source: 'claims-optimization',
+                        content: `Role: You are a Claims Submission Agent responsible for preparing and submitting claims to payers.
+
+Instructions:
+1. Format claims according to payer specifications
+2. Prioritize claims based on timely filing deadlines
+3. Check for payer-specific formatting requirements before submission
+4. <new-text>Verify patient insurance eligibility status before submission</new-text>
+5. Submit claims through appropriate channels
+6. Track submission status
+7. Report errors and rejections`,
+                        performance: { firstPassRate: '78.2%', submissionTime: '1.4m' }
+                    }
+                ],
+                'denials-appeals': [
+                    {
+                        day: 0,
+                        source: 'initialization',
+                        content: `Role: You are a Denials & Appeals Agent responsible for managing denied claims and appeals.
+
+Instructions:
+1. Analyze denial reasons using payer codes
+2. Create appeal letters based on templates
+3. Track appeals and resubmissions
+4. Report appeal outcomes`,
+                        performance: { appealSuccess: '61.3%', processingTime: '8.7m' }
+                    },
+                    {
+                        day: 3,
+                        source: 'appeals-optimization',
+                        content: `Role: You are a Denials & Appeals Agent responsible for managing denied claims and appeals.
+
+Instructions:
+1. Analyze denial reasons using payer codes
+2. <new-text>Categorize denials by type to apply appropriate appeal strategies</new-text>
+3. Create appeal letters based on templates
+4. Track appeals and resubmissions
+5. Report appeal outcomes`,
+                        performance: { appealSuccess: '64.9%', processingTime: '7.9m' }
+                    },
+                    {
+                        day: 6,
+                        source: 'appeals-optimization',
+                        content: `Role: You are a Denials & Appeals Agent responsible for managing denied claims and appeals.
+
+Instructions:
+1. Analyze denial reasons using payer codes
+2. Categorize denials by type to apply appropriate appeal strategies
+3. <new-text>Include specific clinical documentation references in appeal letters</new-text>
+4. Create appeal letters based on templates
+5. Track appeals and resubmissions
+6. Report appeal outcomes`,
+                        performance: { appealSuccess: '67.3%', processingTime: '8.2m' }
+                    }
+                ],
+                'billing-optimization': [
+                    {
+                        day: 0,
+                        source: 'system-governance',
+                        content: `Role: You are a Billing Optimization Agent responsible for improving Billing & Coding Agent performance.
+
+Instructions:
+1. Monitor billing agent accuracy and efficiency metrics
+2. Identify patterns in coding errors and inefficiencies
+3. Modify billing agent prompts to address identified issues
+4. Measure performance changes after modifications`,
+                        performance: { optimizationSuccess: '76.2%' }
+                    },
+                    {
+                        day: 4,
+                        source: 'strategic-alignment',
+                        content: `Role: You are a Billing Optimization Agent responsible for improving Billing & Coding Agent performance.
+
+Instructions:
+1. Monitor billing agent accuracy and efficiency metrics
+2. Identify patterns in coding errors and inefficiencies
+3. Modify billing agent prompts to address identified issues
+4. <new-text>Focus on optimizations that improve medical necessity documentation</new-text>
+5. Measure performance changes after modifications`,
+                        performance: { optimizationSuccess: '84.7%' }
+                    }
+                ]
+            },
+            activityLog: [
+                { day: 0, agent: 'system-governance', tier: 1, message: 'Initialized all agent prompts with baseline instructions' },
+                { day: 1, agent: 'billing-coding', tier: 3, message: 'Processed 142 claims with 92.8% accuracy' },
+                { day: 1, agent: 'claims-submission', tier: 3, message: 'Submitted 138 claims with 75.8% first-pass rate' },
+                { day: 2, agent: 'claims-optimization', tier: 2, message: 'Modified Claims Submission Agent prompt to prioritize by filing deadline' },
+                { day: 2, agent: 'denials-appeals', tier: 3, message: 'Processed 18 denied claims, generated 15 appeals' },
+                { day: 3, agent: 'billing-optimization', tier: 2, message: 'Modified Billing & Coding Agent prompt to improve accuracy' }
+            ]
+        };
+
+        // Initialize simulation controls
+        document.addEventListener('DOMContentLoaded', function() {
+            const startButton = document.getElementById('start-simulation');
+            const pauseButton = document.getElementById('pause-simulation');
+            const resetButton = document.getElementById('reset-simulation');
+            const speedControl = document.getElementById('simulation-speed');
+
+            let simulationInterval;
+            
+            // Render agent cards for each tier
+            function renderAgentCards() {
+                // Tier 1 agents
+                const tier1Container = document.getElementById('tier-1-agents');
+                tier1Container.innerHTML = '';
+                simulationData.agents.tier1.forEach(agent => {
+                    const card = createAgentCard(agent, 1);
+                    tier1Container.appendChild(card);
+                });
+                
+                // Tier 2 agents
+                const tier2Container = document.getElementById('tier-2-agents');
+                tier2Container.innerHTML = '';
+                simulationData.agents.tier2.forEach(agent => {
+                    const card = createAgentCard(agent, 2);
+                    tier2Container.appendChild(card);
+                });
+                
+                // Tier 3 agents
+                const tier3Container = document.getElementById('tier-3-agents');
+                tier3Container.innerHTML = '';
+                simulationData.agents.tier3.forEach(agent => {
+                    const card = createAgentCard(agent, 3);
+                    tier3Container.appendChild(card);
+                });
+            }
+            
+            // Create agent card element
+            function createAgentCard(agent, tier) {
+                const card = document.createElement('div');
+                card.className = 'agent-card';
+                card.dataset.id = agent.id;
+                
+                // Performance indicator class
+                let performanceClass = '';
+                if (agent.performance === 'improving') {
+                    performanceClass = 'performance-improving';
+                } else if (agent.performance === 'stable') {
+                    performanceClass = 'performance-stable';
+                } else if (agent.performance === 'declining') {
+                    performanceClass = 'performance-declining';
+                }
+                
+                // Create stats HTML
+                let statsHtml = '';
+                for (const [key, value] of Object.entries(agent.stats)) {
+                    statsHtml += `<div class="agent-stat">${formatStatKey(key)}: ${value}</div>`;
+                }
+                
+                card.innerHTML = `
+                    <div class="agent-header">
+                        <h4 class="agent-title">${agent.name}</h4>
+                        <span class="agent-performance ${performanceClass}">${agent.performance}</span>
+                    </div>
+                    <p class="agent-description">${agent.description}</p>
+                    <div class="agent-stats">
+                        ${statsHtml}
+                    </div>
+                    <p class="agent-activity">Last activity: ${agent.lastActivity}</p>
+                `;
+                
+                // Add click event to show agent details
+                card.addEventListener('click', () => {
+                    showAgentDetails(agent);
+                });
+                
+                return card;
+            }
+            
+            // Format stat key for display (camelCase to Title Case with spaces)
+            function formatStatKey(key) {
+                return key
+                    .replace(/([A-Z])/g, ' $1')
+                    .replace(/^./, str => str.toUpperCase());
+            }
+            
+            // Show agent details when card is clicked
+            function showAgentDetails(agent) {
+                // Remove selected class from all cards
+                document.querySelectorAll('.agent-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                
+                // Add selected class to clicked card
+                document.querySelector(`.agent-card[data-id="${agent.id}"]`).classList.add('selected');
+                
+                // Update agent detail section
+                const detailSection = document.getElementById('agent-detail');
+                const nameElement = document.getElementById('detail-agent-name');
+                const descriptionElement = document.getElementById('detail-agent-description');
+                const promptHistoryContainer = document.getElementById('prompt-history-container');
+                
+                nameElement.textContent = agent.name;
+                descriptionElement.textContent = agent.description;
+                
+                // Show prompt history if available
+                if (simulationData.promptHistory[agent.id]) {
+                    promptHistoryContainer.innerHTML = '';
+                    simulationData.promptHistory[agent.id].forEach(entry => {
+                        const promptEntry = document.createElement('div');
+                        promptEntry.className = 'prompt-entry';
+                        
+                        promptEntry.innerHTML = `
+                            <div class="prompt-meta">
+                                <span>Day ${entry.day} - Source: ${entry.source}</span>
+                                <span>Performance: ${formatPerformanceMetrics(entry.performance)}</span>
+                            </div>
+                            <div class="prompt-content">${formatPromptContent(entry.content)}</div>
+                        `;
+                        
+                        promptHistoryContainer.appendChild(promptEntry);
+                    });
+                    detailSection.style.display = 'block';
+                } else {
+                    promptHistoryContainer.innerHTML = '<p>No prompt history available for this agent.</p>';
+                    detailSection.style.display = 'block';
+                }
+                
+                simulationData.selectedAgent = agent.id;
+            }
+            
+            // Format performance metrics for display
+            function formatPerformanceMetrics(performance) {
+                if (!performance) return 'N/A';
+                
+                return Object.entries(performance)
+                    .map(([key, value]) => `${formatStatKey(key)}: ${value}`)
+                    .join(', ');
+            }
+            
+            // Format prompt content to highlight changes
+            function formatPromptContent(content) {
+                // Already has HTML tags for highlighting
+                return content;
+            }
+            
+            // Update metrics based on current day
+            function updateMetrics() {
+                const day = simulationData.currentDay;
+                
+                // Update metric displays with values from history
+                if (day < simulationData.metrics.firstPassRate.history.length) {
+                    const firstPassRate = simulationData.metrics.firstPassRate.history[day];
+                    const dso = simulationData.metrics.dso.history[day];
+                    const denialRate = simulationData.metrics.denialRate.history[day];
+                    const appealSuccess = simulationData.metrics.appealSuccess.history[day];
+                    
+                    document.getElementById('first-pass-rate').textContent = firstPassRate + '%';
+                    document.getElementById('dso').textContent = dso;
+                    document.getElementById('denial-rate').textContent = denialRate + '%';
+                    document.getElementById('appeal-success').textContent = appealSuccess + '%';
+                    
+                    // Update current values in simulation data
+                    simulationData.metrics.firstPassRate.current = firstPassRate;
+                    simulationData.metrics.dso.current = dso;
+                    simulationData.metrics.denialRate.current = denialRate;
+                    simulationData.metrics.appealSuccess.current = appealSuccess;
+                }
+            }
+            
+            // Add activity log entry
+            function addLogEntry(day, agent, tier, message) {
+                const logContainer = document.getElementById('log-container');
+                const logEntry = document.createElement('div');
+                logEntry.className = `log-entry tier-${tier}`;
+                logEntry.innerHTML = `<span class="timestamp">Day ${day}</span> <strong>${agent}:</strong> ${message}`;
+                logContainer.prepend(logEntry);
+            }
+            
+            // Initialize charts
+            function initCharts() {
+                // Performance chart
+                const perfCtx = document.getElementById('performance-chart').getContext('2d');
+                const perfChart = new Chart(perfCtx, {
+                    type: 'line',
+                    data: {
+                        labels: Array.from({length: 7}, (_, i) => `Day ${i}`),
+                        datasets: [
+                            {
+                                label: 'First Pass Rate',
+                                data: simulationData.metrics.firstPassRate.history,
+                                borderColor: '#2563eb',
+                                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                                tension: 0.3
+                            },
+                            {
+                                label: 'Appeal Success',
+                                data: simulationData.metrics.appealSuccess.history,
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                tension: 0.3
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 50,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+                
+                // Modifications chart
+                const modCtx = document.getElementById('modifications-chart').getContext('2d');
+                const modChart = new Chart(modCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Billing', 'Claims', 'Appeals'],
+                        datasets: [{
+                            label: 'Prompt Modifications',
+                            data: [2, 3, 2],
+                            backgroundColor: [
+                                'rgba(16, 185, 129, 0.7)',
+                                'rgba(37, 99, 235, 0.7)',
+                                'rgba(124, 58, 237, 0.7)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+            
+            // Simulate a day in the RCM process
+            function simulateDay(day) {
+                // Get predefined activity for this day
+                const dayActivities = simulationData.activityLog.filter(entry => entry.day === day);
+                
+                // Add each activity to the log
+                dayActivities.forEach(activity => {
+                    addLogEntry(
+                        activity.day,
+                        activity.agent,
+                        activity.tier,
+                        activity.message
+                    );
+                    
+                    // Highlight the active agent card
+                    const agentCard = document.querySelector(`.agent-card[data-id="${activity.agent}"]`);
+                    if (agentCard) {
+                        agentCard.classList.add('active');
+                        setTimeout(() => {
+                            agentCard.classList.remove('active');
+                        }, 2000);
+                    }
+                });
+                
+                // Update metrics for this day
+                updateMetrics();
+            }
+            
+            function startSimulation() {
+                if (!simulationData.isRunning) {
+                    simulationData.isRunning = true;
+                    startButton.textContent = 'Running...';
+                    pauseButton.disabled = false;
+                    
+                    // Run simulation steps at the specified speed
+                    simulationInterval = setInterval(() => {
+                        if (simulationData.currentDay < 7) {  // 7-day simulation
+                            simulationData.currentDay++;
+                            simulateDay(simulationData.currentDay);
+                            
+                            // If we've reached the end of the simulation
+                            if (simulationData.currentDay >= 7) {
+                                clearInterval(simulationInterval);
+                                simulationData.isRunning = false;
+                                startButton.textContent = 'Start Simulation';
+                                pauseButton.disabled = true;
+                            }
+                        }
+                    }, 2000 / simulationData.speed);
+                }
+            }
+
+            function pauseSimulation() {
+                if (simulationData.isRunning) {
+                    clearInterval(simulationInterval);
+                    simulationData.isRunning = false;
+                    startButton.textContent = 'Resume';
+                }
+            }
+
+            function resetSimulation() {
+                clearInterval(simulationInterval);
+                simulationData.isRunning = false;
+                simulationData.currentDay = 0;
+                simulationData.selectedAgent = null;
+                
+                startButton.textContent = 'Start Simulation';
+                pauseButton.disabled = true;
+                
+                // Reset UI
+                document.getElementById('agent-detail').style.display = 'none';
+                document.querySelectorAll('.agent-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                
+                // Clear log
+                document.getElementById('log-container').innerHTML = '';
+                
+                // Reset metrics to baseline
+                updateMetrics();
+                
+                // Add initial log entry
+                addLogEntry(0, 'System', 1, 'Simulation reset');
+            }
+
+            // Add event listeners
+            startButton.addEventListener('click', startSimulation);
+            pauseButton.addEventListener('click', pauseSimulation);
+            resetButton.addEventListener('click', resetSimulation);
+            speedControl.addEventListener('input', function() {
+                simulationData.speed = parseInt(this.value);
+                if (simulationData.isRunning) {
+                    pauseSimulation();
+                    startSimulation();
+                }
+            });
+
+            // Initialize UI
+            renderAgentCards();
+            updateMetrics();
+            initCharts();
+            pauseButton.disabled = true;
+            
+            // Add initial log entry
+            addLogEntry(0, 'System', 1, 'Simulation initialized');
+            
+            // Add CSS for active agent highlight
+            const style = document.createElement('style');
+            style.textContent = `
+                .agent-card.active {
+                    box-shadow: 0 0 0 2px var(--success), 0 4px 6px rgba(0, 0, 0, 0.1);
+                    transform: translateY(-2px);
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+</body>
+</html>
