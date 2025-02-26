@@ -132,6 +132,64 @@
         .agent-tier {
             position: relative;
         }
+        
+        .hierarchy-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: -1rem 0;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .arrow-container {
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .arrow {
+            position: relative;
+        }
+        
+        .arrow.down {
+            width: 4px;
+            height: 30px;
+            background: linear-gradient(to bottom, var(--tertiary), var(--secondary));
+        }
+        
+        .arrow.down:after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 10px solid var(--secondary);
+        }
+        
+        .hierarchy-indicator:last-of-type .arrow.down {
+            background: linear-gradient(to bottom, var(--secondary), var(--primary));
+        }
+        
+        .hierarchy-indicator:last-of-type .arrow.down:after {
+            border-top-color: var(--primary);
+        }
+        
+        .hierarchy-label {
+            background-color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--gray-dark);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-top: 0.5rem;
+        }
 
         .tier-header {
             margin-bottom: 0.5rem;
@@ -438,6 +496,43 @@
                 width: 100%;
             }
         }
+
+        /* Active agent highlight */
+        .agent-card.active {
+            box-shadow: 0 0 0 2px var(--success), 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .agent-connection {
+            position: fixed;
+            background-color: var(--success);
+            transform-origin: top center;
+            z-index: 100;
+            animation: pulse 2s ease-in-out;
+        }
+        
+        .hierarchy-indicator.active .arrow.down {
+            animation: glow 2s ease-in-out;
+        }
+        
+        .hierarchy-indicator.active .hierarchy-label {
+            background-color: #dcfce7;
+            color: #166534;
+            font-weight: bold;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        
+        @keyframes glow {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            50% { box-shadow: 0 0 10px 3px rgba(16, 185, 129, 0.7); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        }
     </style>
 </head>
 <body>
@@ -495,6 +590,14 @@
                         <!-- Agents will be inserted here by JavaScript -->
                     </div>
                 </div>
+                
+                <!-- Hierarchy indicator -->
+                <div class="hierarchy-indicator">
+                    <div class="arrow-container">
+                        <div class="arrow down"></div>
+                    </div>
+                    <div class="hierarchy-label">Modifies Metacognition Agent Prompts</div>
+                </div>
 
                 <!-- Tier 2: Metacognition Agents -->
                 <div class="agent-tier tier-2">
@@ -506,6 +609,14 @@
                     <div class="agents-container" id="tier-2-agents">
                         <!-- Agents will be inserted here by JavaScript -->
                     </div>
+                </div>
+                
+                <!-- Hierarchy indicator -->
+                <div class="hierarchy-indicator">
+                    <div class="arrow-container">
+                        <div class="arrow down"></div>
+                    </div>
+                    <div class="hierarchy-label">Modifies Worker Agent Prompts</div>
                 </div>
 
                 <!-- Tier 3: Worker Agents -->
@@ -1134,10 +1245,85 @@ Instructions:
                             agentCard.classList.remove('active');
                         }, 2000);
                     }
+                    
+                    // Show hierarchical relationships for modifications
+                    if (activity.message.toLowerCase().includes('modified') && activity.tier === 2) {
+                        // Tier 2 agent modifying a Tier 3 agent
+                        showModificationFlow(activity.agent, getTargetAgentFromMessage(activity.message), 2, 3);
+                    } else if (activity.message.toLowerCase().includes('modified') && activity.tier === 1) {
+                        // Tier 1 agent modifying a Tier 2 agent
+                        showModificationFlow(activity.agent, getTargetAgentFromMessage(activity.message), 1, 2);
+                    }
                 });
                 
                 // Update metrics for this day
                 updateMetrics();
+            }
+            
+            // Extract target agent ID from message
+            function getTargetAgentFromMessage(message) {
+                // This is a simple implementation - in a real system, you'd have more structured data
+                if (message.includes('Billing & Coding Agent')) {
+                    return 'billing-coding';
+                } else if (message.includes('Claims Submission Agent')) {
+                    return 'claims-submission';
+                } else if (message.includes('Denials & Appeals Agent')) {
+                    return 'denials-appeals';
+                } else if (message.includes('Billing Optimization Agent')) {
+                    return 'billing-optimization';
+                } else if (message.includes('Claims Optimization Agent')) {
+                    return 'claims-optimization';
+                } else if (message.includes('Appeals Optimization Agent')) {
+                    return 'appeals-optimization';
+                }
+                return null;
+            }
+            
+            // Show modification flow between agents
+            function showModificationFlow(sourceAgentId, targetAgentId, sourceTier, targetTier) {
+                if (!sourceAgentId || !targetAgentId) return;
+                
+                // Get agent elements
+                const sourceAgent = document.querySelector(`.agent-card[data-id="${sourceAgentId}"]`);
+                const targetAgent = document.querySelector(`.agent-card[data-id="${targetAgentId}"]`);
+                
+                if (!sourceAgent || !targetAgent) return;
+                
+                // Create a temporary connection line
+                const connection = document.createElement('div');
+                connection.className = 'agent-connection';
+                document.body.appendChild(connection);
+                
+                // Get positions
+                const sourceRect = sourceAgent.getBoundingClientRect();
+                const targetRect = targetAgent.getBoundingClientRect();
+                
+                // Calculate positions
+                const sourceX = sourceRect.left + sourceRect.width / 2;
+                const sourceY = sourceRect.bottom;
+                const targetX = targetRect.left + targetRect.width / 2;
+                const targetY = targetRect.top;
+                
+                // Set connection style
+                connection.style.left = sourceX + 'px';
+                connection.style.top = sourceY + 'px';
+                connection.style.width = '3px';
+                connection.style.height = (targetY - sourceY) + 'px';
+                
+                // Add animation class
+                connection.classList.add('connection-active');
+                
+                // Remove after animation
+                setTimeout(() => {
+                    connection.remove();
+                }, 2000);
+                
+                // Highlight the hierarchy indicator between these tiers
+                const hierarchyIndicator = document.querySelectorAll('.hierarchy-indicator')[sourceTier === 1 ? 0 : 1];
+                hierarchyIndicator.classList.add('active');
+                setTimeout(() => {
+                    hierarchyIndicator.classList.remove('active');
+                }, 2000);
             }
             
             function startSimulation() {
@@ -1217,16 +1403,6 @@ Instructions:
             
             // Add initial log entry
             addLogEntry(0, 'System', 1, 'Simulation initialized');
-            
-            // Add CSS for active agent highlight
-            const style = document.createElement('style');
-            style.textContent = `
-                .agent-card.active {
-                    box-shadow: 0 0 0 2px var(--success), 0 4px 6px rgba(0, 0, 0, 0.1);
-                    transform: translateY(-2px);
-                }
-            `;
-            document.head.appendChild(style);
         });
     </script>
 </body>
