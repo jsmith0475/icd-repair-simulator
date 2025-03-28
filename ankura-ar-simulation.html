@@ -4981,6 +4981,295 @@
             });
         }
     </script>
+
+    <!-- Add about tab content -->
+    <script>
+        // Create the about tab content
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create the about tab content
+            const aboutContent = document.createElement('div');
+            aboutContent.className = 'tab-content';
+            aboutContent.id = 'about-content';
+            
+            // Populate about content
+            aboutContent.innerHTML = `
+                <div class="about-section">
+                    <h2 class="section-title">About This Simulation</h2>
+                    <div class="about-intro">
+                        <p>This interactive simulation is a behavior discovery and design tool created as the first step in developing a real-world multi-agent LLM system for Accounts Receivable processes.</p>
+                    </div>
+                    
+                    <div class="about-grid">
+                        <div class="about-card">
+                            <div class="about-icon">🔍</div>
+                            <h3>Discovery & Design</h3>
+                            <p>This simulation serves as a crucial discovery tool that helps stakeholders visualize, explore, and refine the behavior of a multi-agent LLM system before development begins. By simulating interactions and outcomes, we can identify optimal agent roles, communication patterns, and decision-making processes.</p>
+                        </div>
+                        
+                        <div class="about-card">
+                            <div class="about-icon">🧪</div>
+                            <h3>Hypothesis Testing</h3>
+                            <p>The simulation allows us to test hypotheses about how different agent specializations and collaborative patterns might impact AR metrics like DSO, collection rates, and dispute resolution times. This helps refine our approach before investing in full implementation.</p>
+                        </div>
+                        
+                        <div class="about-card">
+                            <div class="about-icon">🤝</div>
+                            <h3>Stakeholder Alignment</h3>
+                            <p>By providing a tangible, interactive representation of the proposed system, this simulation helps align stakeholders around a shared vision. Finance teams, IT departments, and leadership can explore the system's behavior and provide input that shapes the final implementation plan.</p>
+                        </div>
+                        
+                        <div class="about-card">
+                            <div class="about-icon">📋</div>
+                            <h3>Requirements Elicitation</h3>
+                            <p>As stakeholders interact with the simulation, they identify additional requirements, edge cases, and priorities that might otherwise be missed in traditional requirements gathering. This leads to more comprehensive specifications for the development phase.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="development-process">
+                        <h3>From Simulation to Implementation</h3>
+                        <div class="process-steps">
+                            <div class="process-step">
+                                <div class="step-number">1</div>
+                                <div class="step-content">
+                                    <h4>Behavioral Simulation</h4>
+                                    <p>Create interactive simulations to visualize agent behaviors, interactions, and outcomes. Refine the conceptual model based on stakeholder feedback.</p>
+                                    <div class="step-status current">You are here</div>
+                                </div>
+                            </div>
+                            
+                            <div class="process-step">
+                                <div class="step-number">2</div>
+                                <div class="step-content">
+                                    <h4>Technical Prototype</h4>
+                                    <p>Develop a limited functionality prototype using actual LLM technology to validate core capabilities like reasoning, task delegation, and communication between agents.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="process-step">
+                                <div class="step-number">3</div>
+                                <div class="step-content">
+                                    <h4>Pilot Implementation</h4>
+                                    <p>Deploy a production-ready system with a subset of agents (typically Billing, Collections, and Reconciliation) handling actual AR processes for a limited client segment.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="process-step">
+                                <div class="step-number">4</div>
+                                <div class="step-content">
+                                    <h4>Full Deployment</h4>
+                                    <p>Scale to the complete agent network processing all AR functions with human-in-the-loop oversight. Continuously improve based on real performance data.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="simulation-disclaimer">
+                        <h3>Simulation vs. Reality</h3>
+                        <p>While this simulation illustrates the intended behavior and benefits of a multi-agent LLM system for AR, the actual implementation will involve additional complexity:</p>
+                        <ul>
+                            <li><strong>Integration depth:</strong> Real systems require extensive integration with existing AR platforms, ERP systems, and communication channels.</li>
+                            <li><strong>Model limitations:</strong> Current LLM capabilities may require additional guardrails and human oversight for certain complex decisions.</li>
+                            <li><strong>Implementation timeline:</strong> A phased approach typically takes 6-12 months from initial prototype to full deployment.</li>
+                            <li><strong>Performance targets:</strong> While simulation shows idealized outcomes, real-world improvements may vary based on existing process maturity and data quality.</li>
+                        </ul>
+                        <p>This simulation is designed to inspire possibilities and align stakeholders around a shared vision, serving as the crucial first step in transforming AR operations through intelligent automation.</p>
+                    </div>
+                </div>
+            `;
+            
+            // Add the content to the page
+            document.querySelector('.container').appendChild(aboutContent);
+            
+            // Add CSS for the about tab
+            const style = document.createElement('style');
+            style.textContent = `
+                .about-section {
+                    background-color: white;
+                    border-radius: var(--border-radius);
+                    box-shadow: var(--box-shadow);
+                    padding: 30px;
+                    margin-bottom: 30px;
+                }
+                
+                .about-intro {
+                    font-size: 1.1rem;
+                    line-height: 1.6;
+                    color: var(--dark);
+                    margin-bottom: 30px;
+                    max-width: 900px;
+                }
+                
+                .about-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                    gap: 25px;
+                    margin-bottom: 40px;
+                }
+                
+                .about-card {
+                    background-color: #f8f9fa;
+                    border-radius: var(--border-radius);
+                    padding: 25px;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+                    border-top: 4px solid var(--highlight);
+                }
+                
+                .about-icon {
+                    font-size: 2rem;
+                    margin-bottom: 15px;
+                    color: var(--highlight);
+                }
+                
+                .about-card h3 {
+                    font-size: 1.3rem;
+                    margin-bottom: 15px;
+                    color: var(--primary);
+                }
+                
+                .about-card p {
+                    color: var(--gray);
+                    line-height: 1.5;
+                }
+                
+                .development-process {
+                    background-color: #f8f9fa;
+                    border-radius: var(--border-radius);
+                    padding: 30px;
+                    margin-bottom: 40px;
+                }
+                
+                .development-process h3 {
+                    font-size: 1.4rem;
+                    margin-bottom: 25px;
+                    color: var(--primary);
+                    text-align: center;
+                }
+                
+                .process-steps {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 25px;
+                }
+                
+                .process-step {
+                    display: flex;
+                    gap: 20px;
+                    position: relative;
+                }
+                
+                .process-step:not(:last-child)::after {
+                    content: '';
+                    position: absolute;
+                    top: 50px;
+                    left: 25px;
+                    height: calc(100% + 25px);
+                    width: 2px;
+                    background-color: #ddd;
+                    z-index: 1;
+                }
+                
+                .step-number {
+                    width: 50px;
+                    height: 50px;
+                    background-color: var(--primary);
+                    color: white;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 600;
+                    font-size: 1.2rem;
+                    position: relative;
+                    z-index: 2;
+                }
+                
+                .step-content {
+                    flex: 1;
+                    background-color: white;
+                    border-radius: var(--border-radius);
+                    padding: 20px;
+                    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+                }
+                
+                .step-content h4 {
+                    font-size: 1.1rem;
+                    margin-bottom: 10px;
+                    color: var(--primary);
+                }
+                
+                .step-content p {
+                    color: var(--gray);
+                    margin-bottom: 10px;
+                }
+                
+                .step-status {
+                    display: inline-block;
+                    padding: 5px 10px;
+                    background-color: var(--light);
+                    border-radius: 15px;
+                    font-size: 0.8rem;
+                    font-weight: 500;
+                    color: var(--gray);
+                }
+                
+                .step-status.current {
+                    background-color: var(--highlight-light);
+                    color: var(--primary-dark);
+                }
+                
+                .simulation-disclaimer {
+                    background-color: rgba(255, 248, 230, 0.5);
+                    border-left: 4px solid var(--warning);
+                    padding: 25px;
+                    border-radius: var(--border-radius);
+                }
+                
+                .simulation-disclaimer h3 {
+                    font-size: 1.3rem;
+                    margin-bottom: 15px;
+                    color: var(--primary);
+                }
+                
+                .simulation-disclaimer p {
+                    color: var(--dark);
+                    margin-bottom: 15px;
+                    line-height: 1.5;
+                }
+                
+                .simulation-disclaimer ul {
+                    margin-left: 25px;
+                    margin-bottom: 20px;
+                }
+                
+                .simulation-disclaimer li {
+                    margin-bottom: 10px;
+                    color: var(--dark);
+                }
+                
+                @media (max-width: 768px) {
+                    .about-grid {
+                        grid-template-columns: 1fr;
+                    }
+                    
+                    .process-step {
+                        flex-direction: column;
+                        gap: 10px;
+                    }
+                    
+                    .process-step:not(:last-child)::after {
+                        display: none;
+                    }
+                    
+                    .step-number {
+                        margin-bottom: -25px;
+                        margin-left: 20px;
+                        z-index: 5;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
     
     <!-- Add modular simulations tab content -->
     <script>
