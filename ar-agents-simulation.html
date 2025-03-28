@@ -44,6 +44,33 @@
             line-height: 1.6;
         }
         
+        .return-nav {
+            background-color: var(--primary-dark);
+            padding: 10px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .return-link {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            width: fit-content;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        .return-link:hover {
+            color: var(--highlight-light);
+        }
+        
+        .return-icon {
+            margin-right: 8px;
+            font-size: 1.2rem;
+        }
+        
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -557,6 +584,9 @@
     </style>
 </head>
 <body>
+    <div class="return-nav">
+        <a href="ankura-ar-simulation.html" class="return-link"><span class="return-icon">←</span> Return to Main Dashboard</a>
+    </div>
     <div class="container">
         <header>
             <h1>Ankura AR Agentic LLM Simulation</h1>
