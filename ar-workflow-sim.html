@@ -1,0 +1,1671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ankura AR Agentic LLM - Workflow Simulation</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --primary-dark: #1a252f;
+            --highlight: #3498db;
+            --highlight-light: #74b9ff;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --gray: #95a5a6;
+            
+            --billing: #2ecc71;
+            --collections: #e67e22;
+            --reconciliation: #3498db;
+            --dispute: #9b59b6;
+            --risk: #e74c3c;
+            --reporting: #f1c40f;
+            --orchestrator: #34495e;
+            
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        
+        .workflow-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .workflow-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .workflow-title {
+            margin: 0;
+            color: var(--primary);
+            font-size: 1.8rem;
+        }
+        
+        .workflow-controls {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .simulation-status {
+            background-color: var(--primary);
+            color: white;
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+        }
+        
+        button {
+            background-color: var(--highlight);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        button:hover {
+            background-color: var(--primary);
+        }
+        
+        .button-reset {
+            background-color: var(--gray);
+        }
+        
+        .select-simulation {
+            padding: 10px;
+            border-radius: var(--border-radius);
+            border: 1px solid #ddd;
+            font-size: 1rem;
+        }
+        
+        .workflow-grid {
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            gap: 30px;
+        }
+        
+        @media (max-width: 1100px) {
+            .workflow-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .workflow-visualization {
+            border-radius: var(--border-radius);
+            background-color: #f8f9fa;
+            padding: 20px;
+            position: relative;
+            height: 500px;
+        }
+        
+        .workflow-map {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 20px;
+            height: 100%;
+        }
+        
+        .workflow-step {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            opacity: 0.7;
+            transition: var(--transition);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .workflow-step.active {
+            opacity: 1;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: scale(1.05);
+            z-index: 5;
+        }
+        
+        .workflow-step.completed {
+            border-left: 5px solid var(--success);
+        }
+        
+        .workflow-step-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .step-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background-color: var(--light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-size: 0.9rem;
+        }
+        
+        .step-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .step-description {
+            font-size: 0.8rem;
+            color: var(--gray);
+            flex-grow: 1;
+        }
+        
+        .step-progress {
+            height: 4px;
+            background-color: #eee;
+            border-radius: 2px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: var(--highlight);
+            width: 0%;
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+        
+        .workflow-path {
+            position: absolute;
+            background-color: #ddd;
+            height: 2px;
+            transform-origin: 0 0;
+            z-index: 1;
+        }
+        
+        .path-active {
+            background-color: var(--highlight);
+            height: 3px;
+            box-shadow: 0 0 8px var(--highlight-light);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        
+        /* Step position classes */
+        .step-orchestrator {
+            grid-column: 2 / 4;
+            grid-row: 1;
+        }
+        
+        .step-invoice-extract {
+            grid-column: 1;
+            grid-row: 2;
+        }
+        
+        .step-invoice-validate {
+            grid-column: 2;
+            grid-row: 2;
+        }
+        
+        .step-invoice-submit {
+            grid-column: 3;
+            grid-row: 2;
+        }
+        
+        .step-dunning {
+            grid-column: 4;
+            grid-row: 2;
+        }
+        
+        .step-payment-matching {
+            grid-column: 1;
+            grid-row: 3;
+        }
+        
+        .step-dispute {
+            grid-column: 2;
+            grid-row: 3;
+        }
+        
+        .step-reporting {
+            grid-column: 3;
+            grid-row: 3;
+        }
+        
+        .step-compliance {
+            grid-column: 4;
+            grid-row: 3;
+        }
+        
+        /* Icon colors for different steps */
+        .icon-orchestrator {
+            background-color: var(--orchestrator);
+            color: white;
+        }
+        
+        .icon-billing {
+            background-color: var(--billing);
+            color: white;
+        }
+        
+        .icon-collections {
+            background-color: var(--collections);
+            color: white;
+        }
+        
+        .icon-reconciliation {
+            background-color: var(--reconciliation);
+            color: white;
+        }
+        
+        .icon-dispute {
+            background-color: var(--dispute);
+            color: white;
+        }
+        
+        .icon-risk {
+            background-color: var(--risk);
+            color: white;
+        }
+        
+        .icon-reporting {
+            background-color: var(--reporting);
+            color: white;
+        }
+        
+        /* Activity panel */
+        .activity-panel {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+        }
+        
+        .panel-header {
+            padding: 15px 20px;
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .panel-title {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+        
+        .panel-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 0;
+        }
+        
+        .invoice-details {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .invoice-id {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--primary);
+        }
+        
+        .invoice-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-processing {
+            background-color: var(--highlight-light);
+            color: var(--primary-dark);
+        }
+        
+        .status-sent {
+            background-color: var(--warning);
+            color: white;
+        }
+        
+        .status-paid {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .status-overdue {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .invoice-info {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .info-item {
+            font-size: 0.9rem;
+        }
+        
+        .info-label {
+            color: var(--gray);
+            margin-bottom: 3px;
+        }
+        
+        .info-value {
+            font-weight: 500;
+        }
+        
+        .invoice-amount {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .current-step {
+            background-color: var(--light);
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .current-step-icon {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .activity-log {
+            padding: 0;
+        }
+        
+        .log-entry {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+        }
+        
+        .log-time {
+            color: var(--gray);
+            font-size: 0.8rem;
+            min-width: 60px;
+            margin-right: 10px;
+        }
+        
+        .log-message {
+            flex-grow: 1;
+            font-size: 0.9rem;
+        }
+        
+        .log-agent {
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .log-entry.system {
+            background-color: #f8f9fa;
+        }
+        
+        /* Simulation summary */
+        .simulation-summary {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 30px;
+            margin-top: 30px;
+        }
+        
+        .summary-title {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .summary-card {
+            background-color: var(--light);
+            padding: 20px;
+            border-radius: var(--border-radius);
+        }
+        
+        .summary-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--primary);
+        }
+        
+        .summary-label {
+            color: var(--gray);
+        }
+        
+        .summary-comparison {
+            display: flex;
+            gap: 40px;
+            margin-top: 30px;
+        }
+        
+        .comparison-column {
+            flex: 1;
+        }
+        
+        .comparison-title {
+            font-size: 1.2rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .comparison-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .comparison-label {
+            font-weight: 500;
+        }
+        
+        .comparison-value {
+            font-weight: 600;
+        }
+        
+        .value-traditional {
+            color: var(--gray);
+        }
+        
+        .value-ai {
+            color: var(--highlight);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AR Workflow Simulation</h1>
+            <p>This simulation demonstrates the AR process flow when powered by a specialized team of AI agents.</p>
+            <p>Watch as intelligent agents collaboratively process invoices, follow up on payments, reconcile accounts, and resolve disputes.</p>
+        </header>
+        
+        <div class="workflow-container">
+            <div class="workflow-header">
+                <h2 class="workflow-title">AR Process Workflow</h2>
+                <div class="workflow-controls">
+                    <select class="select-simulation" id="workflow-scenario">
+                        <option value="standard">Standard Invoice Processing</option>
+                        <option value="late">Late Payment Collection</option>
+                        <option value="dispute">Invoice Dispute Resolution</option>
+                    </select>
+                    <div class="simulation-status" id="simulation-status">Ready to Start</div>
+                    <button id="start-btn">Start Simulation</button>
+                    <button id="reset-btn" class="button-reset">Reset</button>
+                </div>
+            </div>
+            
+            <div class="workflow-grid">
+                <div class="workflow-visualization">
+                    <div class="workflow-map">
+                        <!-- Step 1: AR Orchestrator -->
+                        <div class="workflow-step step-orchestrator" id="step-orchestrator">
+                            <div class="workflow-step-header">
+                                <div class="step-icon icon-orchestrator">🎯</div>
+                                <div class="step-title">AR Orchestrator Agent</div>
+                            </div>
+                            <div class="step-description">Coordinates workflow and allocates tasks</div>
+                            <div class="step-progress">
+                                <div class="progress-bar" id="progress-orchestrator"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 2: Invoice Data Extraction -->
+                        <div class="workflow-step step-invoice-extract" id="step-extract">
+                            <div class="workflow-step-header">
+                                <div class="step-icon icon-billing">📋</div>
+                                <div class="step-title">Invoice Data Extraction</div>
+                            </div>
+                            <div class="step-description">Extract billable time from Intapp</div>
+                            <div class="step-progress">
+                                <div class="progress-bar" id="progress-extract"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 3: Invoice Validation -->
+                        <div class="workflow-step step-invoice-validate" id="step-validate">
+                            <div class="workflow-step-header">
+                                <div class="step-icon icon-billing">✓</div>
+                                <div class="step-title">Invoice Validation</div>
+                            </div>
+                            <div class="step-description">Validate against contracts and policies</div>
+                            <div class="step-progress">
+                                <div class="progress-bar" id="progress-validate"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 4: Invoice Submission -->
+                        <div class="workflow-step step-invoice-submit" id="step-submit">
+                            <div class="workflow-step-header">
+                                <div class="step-icon icon-billing">📤</div>
+                                <div class="step-title">Invoice Submission</div>
+                            </div>
+                            <div class="step-description">Generate and send invoice to client</div>
+                            <div class="step-progress">
+                                <div class="progress-bar" id="progress-submit"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 5: Collections & Dunning -->
+                        <div class="workflow-step step-dunning" id="step-dunning">
+                            <div class="workflow-step-header">
+                                <div class="step-icon icon-collections">💰</div>
+                                <div class="step-title">Collections & Dunning</div>
+                            </div>
+                            <div class="step-description">Send payment reminders and follow up</div>
+                            <div class="step-progress">
+                                <div class="progress-bar" id="progress-dunning"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 6: Payment Matching & Reconciliation -->
+                        <div class="workflow-step step-payment-matching" id="step-payment">
+                            <div class="workflow-step-header">
+                                <div class="step-icon icon-reconciliation">🔄</div>
+                                <div class="step-title">Payment Reconciliation</div>
+                            </div>
+                            <div class="step-description">Match payments to invoices</div>
+                            <div class="step-progress">
+                                <div class="progress-bar" id="progress-payment"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 7: Dispute Management -->
+                        <div class="workflow-step step-dispute" id="step-dispute">
+                            <div class="workflow-step-header">
+                                <div class="step-icon icon-dispute">⚖️</div>
+                                <div class="step-title">Dispute Management</div>
+                            </div>
+                            <div class="step-description">Handle invoice disputes and deductions</div>
+                            <div class="step-progress">
+                                <div class="progress-bar" id="progress-dispute"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 8: Reporting & Analytics -->
+                        <div class="workflow-step step-reporting" id="step-reporting">
+                            <div class="workflow-step-header">
+                                <div class="step-icon icon-reporting">📊</div>
+                                <div class="step-title">Reporting & Analytics</div>
+                            </div>
+                            <div class="step-description">Generate insights and forecasts</div>
+                            <div class="step-progress">
+                                <div class="progress-bar" id="progress-reporting"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 9: Compliance Check -->
+                        <div class="workflow-step step-compliance" id="step-compliance">
+                            <div class="workflow-step-header">
+                                <div class="step-icon icon-risk">🔍</div>
+                                <div class="step-title">Compliance Check</div>
+                            </div>
+                            <div class="step-description">Ensure regulatory compliance</div>
+                            <div class="step-progress">
+                                <div class="progress-bar" id="progress-compliance"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Workflow paths will be added dynamically with JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="activity-panel">
+                    <div class="panel-header">
+                        <h3 class="panel-title">Activity & Invoice Details</h3>
+                    </div>
+                    <div class="panel-content">
+                        <div class="invoice-details" id="invoice-details">
+                            <div class="invoice-header">
+                                <div class="invoice-id">Invoice #INV-8472</div>
+                                <div class="invoice-status status-processing">Processing</div>
+                            </div>
+                            
+                            <div class="invoice-info">
+                                <div class="info-item">
+                                    <div class="info-label">Client</div>
+                                    <div class="info-value">Acme Corporation</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Date</div>
+                                    <div class="info-value">Mar 15, 2025</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Due Date</div>
+                                    <div class="info-value">Apr 14, 2025</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">Terms</div>
+                                    <div class="info-value">Net 30</div>
+                                </div>
+                            </div>
+                            
+                            <div class="invoice-amount">$24,850.00</div>
+                            
+                            <div class="current-step" id="current-step">
+                                <div class="current-step-icon">⏳</div>
+                                <div>Waiting to start simulation...</div>
+                            </div>
+                        </div>
+                        
+                        <div class="activity-log" id="activity-log">
+                            <div class="log-entry system">
+                                <div class="log-time">00:00</div>
+                                <div class="log-message">Simulation ready to begin.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="simulation-summary" id="simulation-summary" style="display: none;">
+            <h2 class="summary-title">Simulation Results</h2>
+            
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <div class="summary-value" id="summary-time">3.2h</div>
+                    <div class="summary-label">Total Processing Time</div>
+                </div>
+                
+                <div class="summary-card">
+                    <div class="summary-value" id="summary-steps">8</div>
+                    <div class="summary-label">Steps Completed</div>
+                </div>
+                
+                <div class="summary-card">
+                    <div class="summary-value" id="summary-automation">92%</div>
+                    <div class="summary-label">Automation Rate</div>
+                </div>
+                
+                <div class="summary-card">
+                    <div class="summary-value" id="summary-status">Completed</div>
+                    <div class="summary-label">Final Status</div>
+                </div>
+            </div>
+            
+            <div class="summary-comparison">
+                <div class="comparison-column">
+                    <h3 class="comparison-title">Traditional Process</h3>
+                    
+                    <div class="comparison-item">
+                        <div class="comparison-label">Processing Time</div>
+                        <div class="comparison-value value-traditional">3.2 days</div>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <div class="comparison-label">Manual Steps</div>
+                        <div class="comparison-value value-traditional">12</div>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <div class="comparison-label">Human Hours Required</div>
+                        <div class="comparison-value value-traditional">6.5 hours</div>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <div class="comparison-label">Error Rate</div>
+                        <div class="comparison-value value-traditional">8.3%</div>
+                    </div>
+                </div>
+                
+                <div class="comparison-column">
+                    <h3 class="comparison-title">AI Agent Process</h3>
+                    
+                    <div class="comparison-item">
+                        <div class="comparison-label">Processing Time</div>
+                        <div class="comparison-value value-ai" id="comparison-time">3.2 hours</div>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <div class="comparison-label">Manual Steps</div>
+                        <div class="comparison-value value-ai" id="comparison-manual">2</div>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <div class="comparison-label">Human Hours Required</div>
+                        <div class="comparison-value value-ai" id="comparison-hours">0.5 hours</div>
+                    </div>
+                    
+                    <div class="comparison-item">
+                        <div class="comparison-label">Error Rate</div>
+                        <div class="comparison-value value-ai" id="comparison-error">0.7%</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Workflow simulation data
+        const simulationData = {
+            standard: {
+                title: "Standard Invoice Processing",
+                invoiceId: "INV-8472",
+                client: "Acme Corporation",
+                amount: "$24,850.00",
+                date: "Mar 15, 2025",
+                dueDate: "Apr 14, 2025",
+                terms: "Net 30",
+                steps: [
+                    {
+                        id: "orchestrator",
+                        name: "AR Orchestrator Agent",
+                        duration: 2,
+                        messages: [
+                            "Analyzing client Acme Corporation billing data from Intapp.",
+                            "Initiating invoice generation process for March billable hours.",
+                            "Delegating extraction task to Billing Agent."
+                        ]
+                    },
+                    {
+                        id: "extract",
+                        name: "Billing Agent (Data Extraction)",
+                        duration: 5,
+                        messages: [
+                            "Extracting 168 billable hours from Intapp for client Acme Corporation.",
+                            "Grouping billable items by project and task code.",
+                            "Applying contracted billing rates to hours.",
+                            "Extraction complete. Proceeding to validation."
+                        ]
+                    },
+                    {
+                        id: "validate",
+                        name: "Billing Agent (Validation)",
+                        duration: 8,
+                        messages: [
+                            "Validating invoice items against contract terms.",
+                            "Checking for billing compliance with master services agreement.",
+                            "Verifying tax calculations and discount application.",
+                            "Validation passed. Invoice details are compliant with contract terms."
+                        ]
+                    },
+                    {
+                        id: "submit",
+                        name: "Billing Agent (Submission)",
+                        duration: 3,
+                        messages: [
+                            "Generating invoice document INV-8472 in Workday.",
+                            "Applying client-specific formatting preferences.",
+                            "Invoice successfully created and ready for delivery.",
+                            "Transmitting invoice to client via approved delivery method."
+                        ]
+                    },
+                    {
+                        id: "dunning",
+                        name: "Collections Agent",
+                        duration: 3,
+                        messages: [
+                            "Recording invoice INV-8472 in collections tracking system.",
+                            "Scheduling initial payment reminder for April 7, 2025 (7 days before due date).",
+                            "Setting up escalation workflow if payment not received by due date."
+                        ]
+                    },
+                    {
+                        id: "payment",
+                        name: "Reconciliation Agent",
+                        duration: 12,
+                        messages: [
+                            "Payment of $24,850.00 received from Acme Corporation.",
+                            "Matching payment to invoice INV-8472.",
+                            "Verifying payment amount matches invoice total.",
+                            "Updating invoice status to PAID in Workday.",
+                            "Payment successfully reconciled."
+                        ]
+                    },
+                    {
+                        id: "reporting",
+                        name: "Reporting Agent",
+                        duration: 4,
+                        messages: [
+                            "Updating AR aging report with payment information.",
+                            "Calculating updated DSO metrics for client Acme Corporation.",
+                            "Acme Corporation average payment time: 26.3 days (improved from 32.7 days)."
+                        ]
+                    },
+                    {
+                        id: "compliance",
+                        name: "Risk & Compliance Agent",
+                        duration: 3,
+                        messages: [
+                            "Performing compliance check on completed transaction.",
+                            "Verifying revenue recognition criteria are met.",
+                            "All compliance requirements satisfied. Transaction archived for audit purposes."
+                        ]
+                    }
+                ],
+                paths: [
+                    { from: "orchestrator", to: "extract" },
+                    { from: "extract", to: "validate" },
+                    { from: "validate", to: "submit" },
+                    { from: "submit", to: "dunning" },
+                    { from: "dunning", to: "payment" },
+                    { from: "payment", to: "reporting" },
+                    { from: "reporting", to: "compliance" },
+                    { from: "orchestrator", to: "compliance" }
+                ],
+                summary: {
+                    time: "3.2h",
+                    steps: 8,
+                    automation: "94%",
+                    status: "Paid",
+                    comparisonTime: "3.2 hours",
+                    comparisonManual: 1,
+                    comparisonHours: "0.3 hours",
+                    comparisonError: "0.5%"
+                }
+            },
+            late: {
+                title: "Late Payment Collection",
+                invoiceId: "INV-7391",
+                client: "TechGlobal Industries",
+                amount: "$36,450.00",
+                date: "Feb 10, 2025",
+                dueDate: "Mar 12, 2025",
+                terms: "Net 30",
+                steps: [
+                    {
+                        id: "orchestrator",
+                        name: "AR Orchestrator Agent",
+                        duration: 2,
+                        messages: [
+                            "Detecting overdue invoice INV-7391 for client TechGlobal Industries.",
+                            "Invoice is 16 days past due. Prioritizing for collections workflow.",
+                            "Delegating to Collections Agent with priority flag."
+                        ]
+                    },
+                    {
+                        id: "dunning",
+                        name: "Collections Agent",
+                        duration: 10,
+                        messages: [
+                            "Analyzing payment history for TechGlobal Industries.",
+                            "Previous payment patterns: Average 12 days late over last 6 invoices.",
+                            "Retrieving contact information for AP department.",
+                            "Sending personalized late payment reminder to primary and secondary contacts.",
+                            "Including payment options and impact on credit terms."
+                        ]
+                    },
+                    {
+                        id: "risk",
+                        name: "Risk & Compliance Agent",
+                        duration: 5,
+                        messages: [
+                            "Evaluating risk profile for TechGlobal Industries.",
+                            "Current AR balance: $58,920 (including this invoice).",
+                            "Credit utilization: 78.6% of approved limit.",
+                            "Risk assessment: Medium - client historically pays but consistently late."
+                        ]
+                    },
+                    {
+                        id: "orchestrator",
+                        name: "AR Orchestrator Agent",
+                        duration: 3,
+                        messages: [
+                            "Reviewing collections strategy based on risk assessment.",
+                            "Authorizing Collections Agent to offer 7-day extension without late fees.",
+                            "Updating cash flow forecast to account for delayed payment."
+                        ]
+                    },
+                    {
+                        id: "dunning",
+                        name: "Collections Agent",
+                        duration: 8,
+                        messages: [
+                            "Contacting TechGlobal Industries AR Manager via phone.",
+                            "Discussion summary: Client confirms payment will be issued this week.",
+                            "Offering 7-day extension without late fees as goodwill gesture.",
+                            "Client accepted extension and committed to payment by March 28."
+                        ]
+                    },
+                    {
+                        id: "payment",
+                        name: "Reconciliation Agent",
+                        duration: 10,
+                        messages: [
+                            "Payment received from TechGlobal Industries: $36,450.00.",
+                            "Matching payment to invoice INV-7391.",
+                            "Verifying payment amount matches invoice total.",
+                            "Payment received within extension period (2 days before deadline).",
+                            "Updating invoice status to PAID in Workday."
+                        ]
+                    },
+                    {
+                        id: "reporting",
+                        name: "Reporting Agent",
+                        duration: 5,
+                        messages: [
+                            "Updating collection effectiveness metrics.",
+                            "TechGlobal Industries payment behavior analysis: Trending toward improvement.",
+                            "Recommending continued monitoring but no credit limit changes at this time.",
+                            "Updating DSO dashboard with payment data."
+                        ]
+                    },
+                    {
+                        id: "compliance",
+                        name: "Risk & Compliance Agent",
+                        duration: 3,
+                        messages: [
+                            "Documenting payment extension approval in compliance system.",
+                            "Verifying payment handling followed approved procedures.",
+                            "All compliance requirements satisfied. Transaction archived for audit purposes."
+                        ]
+                    }
+                ],
+                paths: [
+                    { from: "orchestrator", to: "dunning" },
+                    { from: "dunning", to: "risk" },
+                    { from: "risk", to: "orchestrator" },
+                    { from: "orchestrator", to: "dunning" },
+                    { from: "dunning", to: "payment" },
+                    { from: "payment", to: "reporting" },
+                    { from: "reporting", to: "compliance" }
+                ],
+                summary: {
+                    time: "5.8h",
+                    steps: 7,
+                    automation: "82%",
+                    status: "Paid (Late)",
+                    comparisonTime: "5.8 hours",
+                    comparisonManual: 3,
+                    comparisonHours: "1.2 hours",
+                    comparisonError: "0.8%"
+                }
+            },
+            dispute: {
+                title: "Invoice Dispute Resolution",
+                invoiceId: "INV-8156",
+                client: "Pinnacle Consulting",
+                amount: "$42,750.00",
+                date: "Mar 5, 2025",
+                dueDate: "Apr 4, 2025",
+                terms: "Net 30",
+                steps: [
+                    {
+                        id: "orchestrator",
+                        name: "AR Orchestrator Agent",
+                        duration: 2,
+                        messages: [
+                            "Receiving dispute notification for invoice INV-8156 from client Pinnacle Consulting.",
+                            "Dispute category: Rate discrepancy on Project XR-720.",
+                            "Delegating investigation to Dispute Management Agent."
+                        ]
+                    },
+                    {
+                        id: "dispute",
+                        name: "Dispute Management Agent",
+                        duration: 8,
+                        messages: [
+                            "Analyzing dispute details from client communication.",
+                            "Client claims incorrect rate applied: $350/hr vs contracted $325/hr for senior consultants.",
+                            "Retrieving original contract and rate card from document management system.",
+                            "Examining all time entries for Project XR-720 with associated rates."
+                        ]
+                    },
+                    {
+                        id: "extract",
+                        name: "Billing Agent",
+                        duration: 5,
+                        messages: [
+                            "Reviewing original time entry data from Intapp.",
+                            "Verifying rate application logic for Senior Consultant tier.",
+                            "Issue identified: Rate increase effective date (March 1) was applied to February hours."
+                        ]
+                    },
+                    {
+                        id: "dispute",
+                        name: "Dispute Management Agent",
+                        duration: 4,
+                        messages: [
+                            "Confirming issue: 42 hours were incorrectly billed at $350/hr instead of $325/hr.",
+                            "Calculating adjustment amount: $1,050 overcharge.",
+                            "Preparing credit memo and adjustment recommendation."
+                        ]
+                    },
+                    {
+                        id: "orchestrator",
+                        name: "AR Orchestrator Agent",
+                        duration: 3,
+                        messages: [
+                            "Reviewing dispute findings and adjustment recommendation.",
+                            "Approving credit memo for $1,050.",
+                            "Instructing Billing Agent to issue correction."
+                        ]
+                    },
+                    {
+                        id: "validate",
+                        name: "Billing Agent",
+                        duration: 6,
+                        messages: [
+                            "Creating credit memo CM-2134 for $1,050.",
+                            "Adjusting invoice INV-8156 in Workday.",
+                            "Updating invoice amount to $41,700.00.",
+                            "Generating revised invoice document with correct rates applied."
+                        ]
+                    },
+                    {
+                        id: "submit",
+                        name: "Billing Agent",
+                        duration: 3,
+                        messages: [
+                            "Sending revised invoice and credit memo to client.",
+                            "Including explanation of rate adjustment and apology for error.",
+                            "Updating invoice status to ADJUSTED in Workday."
+                        ]
+                    },
+                    {
+                        id: "dunning",
+                        name: "Collections Agent",
+                        duration: 3,
+                        messages: [
+                            "Updating collections record with adjusted invoice amount.",
+                            "Maintaining original due date as goodwill gesture.",
+                            "Scheduling courtesy follow-up call to ensure client satisfaction."
+                        ]
+                    },
+                    {
+                        id: "payment",
+                        name: "Reconciliation Agent",
+                        duration: 10,
+                        messages: [
+                            "Payment received from Pinnacle Consulting: $41,700.00.",
+                            "Matching payment to adjusted invoice INV-8156.",
+                            "Verifying payment amount matches revised invoice total.",
+                            "Updating invoice status to PAID in Workday."
+                        ]
+                    },
+                    {
+                        id: "reporting",
+                        name: "Reporting Agent",
+                        duration: 6,
+                        messages: [
+                            "Logging dispute resolution metrics in analytics system.",
+                            "Updating billing accuracy KPIs.",
+                            "Identifying pattern: Rate transition date errors occurred in 3 invoices this quarter.",
+                            "Recommending process improvement for rate change implementation."
+                        ]
+                    },
+                    {
+                        id: "compliance",
+                        name: "Risk & Compliance Agent",
+                        duration: 4,
+                        messages: [
+                            "Documenting dispute resolution process for audit purposes.",
+                            "Verifying adjustment follows accounting standards.",
+                            "Adding preventative control recommendation for future rate changes.",
+                            "All compliance requirements satisfied. Case closed."
+                        ]
+                    }
+                ],
+                paths: [
+                    { from: "orchestrator", to: "dispute" },
+                    { from: "dispute", to: "extract" },
+                    { from: "extract", to: "dispute" },
+                    { from: "dispute", to: "orchestrator" },
+                    { from: "orchestrator", to: "validate" },
+                    { from: "validate", to: "submit" },
+                    { from: "submit", to: "dunning" },
+                    { from: "dunning", to: "payment" },
+                    { from: "payment", to: "reporting" },
+                    { from: "reporting", to: "compliance" }
+                ],
+                summary: {
+                    time: "7.6h",
+                    steps: 11,
+                    automation: "78%",
+                    status: "Resolved & Paid",
+                    comparisonTime: "7.6 hours",
+                    comparisonManual: 4,
+                    comparisonHours: "2.5 hours",
+                    comparisonError: "1.2%"
+                }
+            }
+        };
+        
+        // DOM elements
+        const startBtn = document.getElementById('start-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const scenarioSelect = document.getElementById('workflow-scenario');
+        const simulationStatus = document.getElementById('simulation-status');
+        const invoiceDetails = document.getElementById('invoice-details');
+        const activityLog = document.getElementById('activity-log');
+        const currentStepDisplay = document.getElementById('current-step');
+        const simulationSummary = document.getElementById('simulation-summary');
+        
+        // Simulation state
+        let currentSimulation = 'standard';
+        let isRunning = false;
+        let currentStepIndex = -1;
+        let simulationTimer = null;
+        
+        // Initialize workflow paths
+        function drawWorkflowPaths() {
+            // Clear existing paths
+            document.querySelectorAll('.workflow-path').forEach(path => path.remove());
+            
+            // Get simulation paths
+            const pathsData = simulationData[currentSimulation].paths;
+            
+            pathsData.forEach(pathData => {
+                const fromStep = document.getElementById(`step-${pathData.from}`);
+                const toStep = document.getElementById(`step-${pathData.to}`);
+                
+                if (!fromStep || !toStep) return;
+                
+                // Get element positions
+                const fromRect = fromStep.getBoundingClientRect();
+                const toRect = toStep.getBoundingClientRect();
+                const visualizationRect = document.querySelector('.workflow-visualization').getBoundingClientRect();
+                
+                // Calculate center points relative to visualization container
+                const fromX = fromRect.left + fromRect.width / 2 - visualizationRect.left;
+                const fromY = fromRect.top + fromRect.height / 2 - visualizationRect.top;
+                const toX = toRect.left + toRect.width / 2 - visualizationRect.left;
+                const toY = toRect.top + toRect.height / 2 - visualizationRect.top;
+                
+                // Calculate distance and angle
+                const dx = toX - fromX;
+                const dy = toY - fromY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                
+                // Create path element
+                const path = document.createElement('div');
+                path.className = 'workflow-path';
+                path.dataset.from = pathData.from;
+                path.dataset.to = pathData.to;
+                path.style.width = `${distance}px`;
+                path.style.left = `${fromX}px`;
+                path.style.top = `${fromY}px`;
+                path.style.transform = `rotate(${angle}deg)`;
+                
+                // Add to visualization
+                document.querySelector('.workflow-visualization').appendChild(path);
+            });
+        }
+        
+        // Update invoice details
+        function updateInvoiceDetails() {
+            const simulationInfo = simulationData[currentSimulation];
+            
+            // Update invoice information
+            const invoiceIdElement = invoiceDetails.querySelector('.invoice-id');
+            invoiceIdElement.textContent = `Invoice #${simulationInfo.invoiceId}`;
+            
+            const clientElement = invoiceDetails.querySelector('.info-value:nth-child(2)');
+            clientElement.textContent = simulationInfo.client;
+            
+            const dateElement = invoiceDetails.querySelector('.info-value:nth-child(4)');
+            dateElement.textContent = simulationInfo.date;
+            
+            const dueDateElement = invoiceDetails.querySelector('.info-value:nth-child(6)');
+            dueDateElement.textContent = simulationInfo.dueDate;
+            
+            const termsElement = invoiceDetails.querySelector('.info-value:nth-child(8)');
+            termsElement.textContent = simulationInfo.terms;
+            
+            const amountElement = invoiceDetails.querySelector('.invoice-amount');
+            amountElement.textContent = simulationInfo.amount;
+            
+            // Reset status
+            const statusElement = invoiceDetails.querySelector('.invoice-status');
+            statusElement.textContent = 'Processing';
+            statusElement.className = 'invoice-status status-processing';
+            
+            // Reset current step display
+            currentStepDisplay.innerHTML = `
+                <div class="current-step-icon">⏳</div>
+                <div>Waiting to start simulation...</div>
+            `;
+        }
+        
+        // Update simulation status
+        function updateSimulationStatus(status) {
+            simulationStatus.textContent = status;
+        }
+        
+        // Add log entry
+        function addLogEntry(time, agent, message, isSystem = false) {
+            const entry = document.createElement('div');
+            entry.className = `log-entry${isSystem ? ' system' : ''}`;
+            
+            entry.innerHTML = `
+                <div class="log-time">${time}</div>
+                <div class="log-message">
+                    ${agent ? `<span class="log-agent">${agent}:</span> ` : ''}
+                    ${message}
+                </div>
+            `;
+            
+            activityLog.appendChild(entry);
+            activityLog.scrollTop = activityLog.scrollHeight;
+        }
+        
+        // Format time
+        function formatTime(minutes) {
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            
+            if (hours > 0) {
+                return `${hours}h ${mins}m`;
+            } else {
+                return `${mins}m`;
+            }
+        }
+        
+        // Reset simulation
+        function resetSimulation() {
+            // Stop any running simulation
+            if (simulationTimer) {
+                clearTimeout(simulationTimer);
+                simulationTimer = null;
+            }
+            
+            // Reset state
+            isRunning = false;
+            currentStepIndex = -1;
+            
+            // Reset UI
+            startBtn.textContent = 'Start Simulation';
+            updateSimulationStatus('Ready to Start');
+            
+            // Reset workflow steps
+            document.querySelectorAll('.workflow-step').forEach(step => {
+                step.classList.remove('active', 'completed');
+                const progressBar = step.querySelector('.progress-bar');
+                if (progressBar) progressBar.style.width = '0%';
+            });
+            
+            // Reset workflow paths
+            document.querySelectorAll('.workflow-path').forEach(path => {
+                path.classList.remove('path-active');
+            });
+            
+            // Reset invoice details
+            updateInvoiceDetails();
+            
+            // Clear activity log except for initial message
+            activityLog.innerHTML = `
+                <div class="log-entry system">
+                    <div class="log-time">00:00</div>
+                    <div class="log-message">Simulation ready to begin.</div>
+                </div>
+            `;
+            
+            // Hide summary
+            simulationSummary.style.display = 'none';
+        }
+        
+        // Get current step in the workflow
+        function getCurrentStep() {
+            if (currentStepIndex < 0 || currentStepIndex >= simulationData[currentSimulation].steps.length) {
+                return null;
+            }
+            
+            return simulationData[currentSimulation].steps[currentStepIndex];
+        }
+        
+        // Activate a workflow step
+        function activateStep(stepId) {
+            // Deactivate all steps
+            document.querySelectorAll('.workflow-step').forEach(step => {
+                step.classList.remove('active');
+            });
+            
+            // Activate the current step
+            const stepElement = document.getElementById(`step-${stepId}`);
+            if (stepElement) {
+                stepElement.classList.add('active');
+                
+                // Scroll to make sure the step is visible
+                stepElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
+        }
+        
+        // Activate a workflow path
+        function activatePath(fromId, toId) {
+            // Find the path element
+            const pathElement = document.querySelector(`.workflow-path[data-from="${fromId}"][data-to="${toId}"]`);
+            
+            if (pathElement) {
+                pathElement.classList.add('path-active');
+            }
+        }
+        
+        // Update current step display
+        function updateCurrentStepDisplay(step) {
+            let icon = '⏳';
+            switch(step.id) {
+                case 'orchestrator': icon = '🎯'; break;
+                case 'extract': case 'validate': case 'submit': icon = '📋'; break;
+                case 'dunning': icon = '💰'; break;
+                case 'payment': icon = '🔄'; break;
+                case 'dispute': icon = '⚖️'; break;
+                case 'reporting': icon = '📊'; break;
+                case 'compliance': case 'risk': icon = '🔍'; break;
+            }
+            
+            currentStepDisplay.innerHTML = `
+                <div class="current-step-icon">${icon}</div>
+                <div>Current Activity: <strong>${step.name}</strong></div>
+            `;
+        }
+        
+        // Proceed to next step in simulation
+        function processNextStep() {
+            currentStepIndex++;
+            
+            // Check if simulation is complete
+            if (currentStepIndex >= simulationData[currentSimulation].steps.length) {
+                completeSimulation();
+                return;
+            }
+            
+            // Get current step
+            const currentStep = getCurrentStep();
+            if (!currentStep) return;
+            
+            // Update UI for current step
+            activateStep(currentStep.id);
+            updateCurrentStepDisplay(currentStep);
+            updateSimulationStatus(`Processing: ${currentStep.name}`);
+            
+            // Add initial log entry for step
+            const elapsedTime = calculateElapsedTime(currentStepIndex);
+            addLogEntry(formatTime(elapsedTime), currentStep.name, currentStep.messages[0]);
+            
+            // Activate path if there's a previous step
+            if (currentStepIndex > 0) {
+                const prevStep = simulationData[currentSimulation].steps[currentStepIndex - 1];
+                
+                // Find the path in the simulation paths data
+                const pathData = simulationData[currentSimulation].paths.find(
+                    path => path.from === prevStep.id && path.to === currentStep.id
+                );
+                
+                if (pathData) {
+                    activatePath(pathData.from, pathData.to);
+                }
+            }
+            
+            // Start progress animation
+            animateStepProgress(currentStep);
+        }
+        
+        // Calculate total elapsed time up to a step index
+        function calculateElapsedTime(stepIndex) {
+            let totalTime = 0;
+            
+            for (let i = 0; i < stepIndex; i++) {
+                totalTime += simulationData[currentSimulation].steps[i].duration;
+            }
+            
+            return totalTime;
+        }
+        
+        // Animate step progress
+        function animateStepProgress(step) {
+            const progressBar = document.querySelector(`#progress-${step.id}`);
+            if (!progressBar) return;
+            
+            // Reset progress
+            progressBar.style.width = '0%';
+            
+            // Animation variables
+            const duration = step.duration * 1000; // Convert to milliseconds
+            const messageCount = step.messages.length;
+            const messageInterval = duration / messageCount;
+            const startTime = Date.now();
+            let messageIndex = 1; // Start from 1 because we've already shown the first message
+            
+            // Animation frame function
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Update progress bar
+                progressBar.style.width = `${progress * 100}%`;
+                
+                // Check if it's time to show a new message
+                if (messageIndex < messageCount && elapsed >= messageIndex * messageInterval) {
+                    const elapsedMinutes = calculateElapsedTime(currentStepIndex) + Math.floor((elapsed / 1000) / 60);
+                    addLogEntry(formatTime(elapsedMinutes), step.name, step.messages[messageIndex]);
+                    messageIndex++;
+                }
+                
+                // Continue animation or complete step
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    completeStep(step);
+                }
+            }
+            
+            // Start animation
+            requestAnimationFrame(animate);
+        }
+        
+        // Mark step as completed
+        function completeStep(step) {
+            const stepElement = document.getElementById(`step-${step.id}`);
+            if (stepElement) {
+                stepElement.classList.remove('active');
+                stepElement.classList.add('completed');
+            }
+            
+            // Process next step after a short delay
+            simulationTimer = setTimeout(processNextStep, 1000);
+        }
+        
+        // Complete simulation
+        function completeSimulation() {
+            isRunning = false;
+            startBtn.textContent = 'Restart Simulation';
+            
+            // Update status
+            updateSimulationStatus('Simulation Complete');
+            
+            // Add final log entry
+            addLogEntry('Final', null, 'Simulation completed successfully.', true);
+            
+            // Update invoice status based on scenario
+            const statusElement = invoiceDetails.querySelector('.invoice-status');
+            
+            if (currentSimulation === 'standard') {
+                statusElement.textContent = 'Paid';
+                statusElement.className = 'invoice-status status-paid';
+            } else if (currentSimulation === 'late') {
+                statusElement.textContent = 'Paid (Late)';
+                statusElement.className = 'invoice-status status-paid';
+            } else if (currentSimulation === 'dispute') {
+                statusElement.textContent = 'Dispute Resolved & Paid';
+                statusElement.className = 'invoice-status status-paid';
+            }
+            
+            // Update current step display
+            currentStepDisplay.innerHTML = `
+                <div class="current-step-icon">✓</div>
+                <div>Process complete: <strong>Invoice ${statusElement.textContent}</strong></div>
+            `;
+            
+            // Show simulation summary
+            updateSummary();
+            simulationSummary.style.display = 'block';
+            
+            // Scroll to summary
+            setTimeout(() => {
+                simulationSummary.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 500);
+        }
+        
+        // Update summary with current simulation data
+        function updateSummary() {
+            const summary = simulationData[currentSimulation].summary;
+            
+            document.getElementById('summary-time').textContent = summary.time;
+            document.getElementById('summary-steps').textContent = summary.steps;
+            document.getElementById('summary-automation').textContent = summary.automation;
+            document.getElementById('summary-status').textContent = summary.status;
+            
+            document.getElementById('comparison-time').textContent = summary.comparisonTime;
+            document.getElementById('comparison-manual').textContent = summary.comparisonManual;
+            document.getElementById('comparison-hours').textContent = summary.comparisonHours;
+            document.getElementById('comparison-error').textContent = summary.comparisonError;
+        }
+        
+        // Initialize simulation
+        function initSimulation() {
+            currentSimulation = scenarioSelect.value;
+            resetSimulation();
+            updateInvoiceDetails();
+            drawWorkflowPaths();
+            
+            // Update simulation title in status
+            updateSimulationStatus(`Ready: ${simulationData[currentSimulation].title}`);
+        }
+        
+        // Event Listeners
+        startBtn.addEventListener('click', function() {
+            if (isRunning) {
+                // Pause simulation
+                isRunning = false;
+                if (simulationTimer) {
+                    clearTimeout(simulationTimer);
+                    simulationTimer = null;
+                }
+                startBtn.textContent = 'Resume Simulation';
+                updateSimulationStatus('Paused');
+            } else {
+                // Start or resume simulation
+                if (currentStepIndex < 0) {
+                    // New simulation
+                    isRunning = true;
+                    startBtn.textContent = 'Pause Simulation';
+                    updateSimulationStatus('Starting...');
+                    
+                    // Clear any previous summary
+                    simulationSummary.style.display = 'none';
+                    
+                    // Begin with first step
+                    processNextStep();
+                } else if (currentStepIndex >= simulationData[currentSimulation].steps.length) {
+                    // Completed simulation - restart
+                    resetSimulation();
+                    isRunning = true;
+                    startBtn.textContent = 'Pause Simulation';
+                    updateSimulationStatus('Starting...');
+                    processNextStep();
+                } else {
+                    // Resume paused simulation
+                    isRunning = true;
+                    startBtn.textContent = 'Pause Simulation';
+                    updateSimulationStatus('Resuming...');
+                    processNextStep();
+                }
+            }
+        });
+        
+        resetBtn.addEventListener('click', resetSimulation);
+        
+        scenarioSelect.addEventListener('change', initSimulation);
+        
+        // Initialize on load
+        window.addEventListener('load', function() {
+            initSimulation();
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                drawWorkflowPaths();
+            });
+        });
+    </script>
+</body>
+</html>

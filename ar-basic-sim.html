@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ankura AR Agentic LLM - Basic Simulation</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --primary-dark: #1a252f;
+            --highlight: #3498db;
+            --highlight-light: #74b9ff;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --gray: #95a5a6;
+            
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .simulation-box {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .simulation-box h2 {
+            margin-bottom: 20px;
+            color: var(--primary);
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        
+        button {
+            background-color: var(--highlight);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        
+        button:hover {
+            background-color: var(--primary);
+        }
+        
+        .time-display {
+            background-color: var(--light);
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+        }
+        
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .speed-label {
+            font-weight: 500;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .metric-card {
+            background-color: var(--light);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 10px 0;
+            color: var(--primary);
+        }
+        
+        .metric-label {
+            font-size: 1rem;
+            color: var(--gray);
+            margin-bottom: 5px;
+        }
+        
+        .metric-change {
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .change-positive {
+            color: var(--success);
+        }
+        
+        .change-negative {
+            color: var(--danger);
+        }
+        
+        .activity-log {
+            background-color: #f8f9fa;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            height: 300px;
+            overflow-y: auto;
+            margin-top: 30px;
+        }
+        
+        .log-entry {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+        }
+        
+        .log-time {
+            color: var(--gray);
+            font-size: 0.9rem;
+            min-width: 80px;
+        }
+        
+        .log-message {
+            flex-grow: 1;
+        }
+        
+        .chart-container {
+            height: 300px;
+            margin-top: 30px;
+        }
+        
+        .divider {
+            height: 1px;
+            background-color: #eee;
+            margin: 30px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Ankura AR Basic Simulation</h1>
+            <p>This simulation demonstrates the impact of AI-powered agents on Accounts Receivable processes and Days Sales Outstanding (DSO).</p>
+        </header>
+        
+        <div class="simulation-box">
+            <h2>AR Process Simulation</h2>
+            
+            <div class="controls">
+                <button id="start-btn">Start Simulation</button>
+                <button id="reset-btn">Reset</button>
+                <div class="time-display" id="simulation-time">Day: 0</div>
+                <div class="speed-control">
+                    <span class="speed-label">Speed:</span>
+                    <input type="range" id="speed-control" min="1" max="10" value="5">
+                </div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <div class="chart-container">
+                <canvas id="dso-chart"></canvas>
+            </div>
+            
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Days Sales Outstanding (DSO)</div>
+                    <div class="metric-value" id="dso-value">42.5</div>
+                    <div class="metric-change change-positive" id="dso-change">↓ 8.3%</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-label">Collection Rate</div>
+                    <div class="metric-value" id="collection-rate">78%</div>
+                    <div class="metric-change change-positive" id="collection-change">↑ 15.2%</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-label">Invoice Processing Time</div>
+                    <div class="metric-value" id="processing-time">0.8d</div>
+                    <div class="metric-change change-positive" id="processing-change">↓ 75%</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div class="metric-label">Disputes Resolved</div>
+                    <div class="metric-value" id="disputes-resolved">92%</div>
+                    <div class="metric-change change-positive" id="disputes-change">↑ 23.5%</div>
+                </div>
+            </div>
+            
+            <div class="activity-log" id="activity-log">
+                <div class="log-entry">
+                    <div class="log-time">Day 0:</div>
+                    <div class="log-message">Simulation initialized. Starting with historical AR data.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulation data
+        const simulationData = {
+            // Starting values
+            initialDSO: 45.8,
+            initialCollectionRate: 67.5,
+            initialProcessingTime: 3.2,
+            initialDisputesResolved: 74.3,
+            
+            // Target values (after full simulation)
+            targetDSO: 32.1,
+            targetCollectionRate: 89.7,
+            targetProcessingTime: 0.8,
+            targetDisputesResolved: 95.8,
+            
+            // Simulation state
+            day: 0,
+            running: false,
+            speed: 5,
+            
+            // Improvement curves (nonlinear to simulate realistic adoption)
+            dsoData: [],
+            collectionData: [],
+            processingTimeData: [],
+            disputesResolvedData: []
+        };
+        
+        // DOM elements
+        const startBtn = document.getElementById('start-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const timeDisplay = document.getElementById('simulation-time');
+        const speedControl = document.getElementById('speed-control');
+        const activityLog = document.getElementById('activity-log');
+        
+        // Metric display elements
+        const dsoValue = document.getElementById('dso-value');
+        const dsoChange = document.getElementById('dso-change');
+        const collectionRate = document.getElementById('collection-rate');
+        const collectionChange = document.getElementById('collection-change');
+        const processingTime = document.getElementById('processing-time');
+        const processingChange = document.getElementById('processing-change');
+        const disputesResolved = document.getElementById('disputes-resolved');
+        const disputesChange = document.getElementById('disputes-change');
+        
+        // Chart setup
+        const ctx = document.getElementById('dso-chart').getContext('2d');
+        const dsoChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Days Sales Outstanding (DSO)',
+                        data: [],
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Traditional AR Process (Baseline)',
+                        data: [],
+                        borderColor: '#95a5a6',
+                        backgroundColor: 'rgba(149, 165, 166, 0.1)',
+                        borderDash: [5, 5],
+                        fill: false,
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: 'Days'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Simulation Day'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    legend: {
+                        position: 'top'
+                    }
+                }
+            }
+        });
+        
+        // Initialize simulation
+        function initSimulation() {
+            simulationData.day = 0;
+            simulationData.dsoData = [];
+            simulationData.collectionData = [];
+            simulationData.processingTimeData = [];
+            simulationData.disputesResolvedData = [];
+            
+            // Add initial day data
+            updateSimulationData();
+            
+            // Update UI
+            updateUI();
+            updateChart();
+            
+            // Clear log except for initial entry
+            activityLog.innerHTML = `
+                <div class="log-entry">
+                    <div class="log-time">Day 0:</div>
+                    <div class="log-message">Simulation initialized. Starting with historical AR data.</div>
+                </div>
+            `;
+        }
+        
+        // Calculate improvement using sigmoid function for realistic adoption curve
+        function calculateImprovement(initial, target, day, maxDays = 90) {
+            // Sigmoid function creates an S-curve adoption
+            const x = (day / maxDays) * 12 - 6; // Scale to reasonable sigmoid range
+            const sigmoid = 1 / (1 + Math.exp(-x));
+            
+            // Calculate the value based on progress along sigmoid curve
+            const improvement = initial + (target - initial) * sigmoid;
+            return improvement;
+        }
+        
+        // Update simulation data for current day
+        function updateSimulationData() {
+            const day = simulationData.day;
+            
+            // Calculate values for current day using sigmoid adoption curves
+            const currentDSO = calculateImprovement(
+                simulationData.initialDSO, 
+                simulationData.targetDSO, 
+                day
+            );
+            
+            const currentCollectionRate = calculateImprovement(
+                simulationData.initialCollectionRate, 
+                simulationData.targetCollectionRate, 
+                day
+            );
+            
+            const currentProcessingTime = calculateImprovement(
+                simulationData.initialProcessingTime, 
+                simulationData.targetProcessingTime, 
+                day
+            );
+            
+            const currentDisputesResolved = calculateImprovement(
+                simulationData.initialDisputesResolved, 
+                simulationData.targetDisputesResolved, 
+                day
+            );
+            
+            // Store the data
+            simulationData.dsoData.push(currentDSO);
+            simulationData.collectionData.push(currentCollectionRate);
+            simulationData.processingTimeData.push(currentProcessingTime);
+            simulationData.disputesResolvedData.push(currentDisputesResolved);
+        }
+        
+        // Update UI with current simulation values
+        function updateUI() {
+            const day = simulationData.day;
+            
+            // Update time display
+            timeDisplay.textContent = `Day: ${day}`;
+            
+            // Get latest values
+            const currentDSO = simulationData.dsoData[day];
+            const currentCollectionRate = simulationData.collectionData[day];
+            const currentProcessingTime = simulationData.processingTimeData[day];
+            const currentDisputesResolved = simulationData.disputesResolvedData[day];
+            
+            // Calculate changes if beyond day 0
+            let dsoChangeVal = 0;
+            let collectionChangeVal = 0;
+            let processingChangeVal = 0;
+            let disputesChangeVal = 0;
+            
+            if (day > 0) {
+                dsoChangeVal = ((currentDSO - simulationData.initialDSO) / simulationData.initialDSO) * 100;
+                collectionChangeVal = ((currentCollectionRate - simulationData.initialCollectionRate) / simulationData.initialCollectionRate) * 100;
+                processingChangeVal = ((currentProcessingTime - simulationData.initialProcessingTime) / simulationData.initialProcessingTime) * 100;
+                disputesChangeVal = ((currentDisputesResolved - simulationData.initialDisputesResolved) / simulationData.initialDisputesResolved) * 100;
+            }
+            
+            // Update metric displays
+            dsoValue.textContent = currentDSO.toFixed(1);
+            dsoChange.textContent = `${dsoChangeVal <= 0 ? '↓' : '↑'} ${Math.abs(dsoChangeVal).toFixed(1)}%`;
+            dsoChange.className = `metric-change ${dsoChangeVal <= 0 ? 'change-positive' : 'change-negative'}`;
+            
+            collectionRate.textContent = `${currentCollectionRate.toFixed(1)}%`;
+            collectionChange.textContent = `${collectionChangeVal >= 0 ? '↑' : '↓'} ${Math.abs(collectionChangeVal).toFixed(1)}%`;
+            collectionChange.className = `metric-change ${collectionChangeVal >= 0 ? 'change-positive' : 'change-negative'}`;
+            
+            processingTime.textContent = `${currentProcessingTime.toFixed(1)}d`;
+            processingChange.textContent = `${processingChangeVal <= 0 ? '↓' : '↑'} ${Math.abs(processingChangeVal).toFixed(1)}%`;
+            processingChange.className = `metric-change ${processingChangeVal <= 0 ? 'change-positive' : 'change-negative'}`;
+            
+            disputesResolved.textContent = `${currentDisputesResolved.toFixed(1)}%`;
+            disputesChange.textContent = `${disputesChangeVal >= 0 ? '↑' : '↓'} ${Math.abs(disputesChangeVal).toFixed(1)}%`;
+            disputesChange.className = `metric-change ${disputesChangeVal >= 0 ? 'change-positive' : 'change-negative'}`;
+        }
+        
+        // Update chart with current data
+        function updateChart() {
+            // Update labels (days)
+            dsoChart.data.labels = Array.from({length: simulationData.day + 1}, (_, i) => i);
+            
+            // Update DSO data
+            dsoChart.data.datasets[0].data = simulationData.dsoData;
+            
+            // Update baseline (flat line at initial DSO)
+            dsoChart.data.datasets[1].data = Array(simulationData.day + 1).fill(simulationData.initialDSO);
+            
+            // Refresh chart
+            dsoChart.update();
+        }
+        
+        // Add entry to activity log
+        function addLogEntry(message) {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `
+                <div class="log-time">Day ${simulationData.day}:</div>
+                <div class="log-message">${message}</div>
+            `;
+            
+            activityLog.appendChild(entry);
+            activityLog.scrollTop = activityLog.scrollHeight;
+        }
+        
+        // Generate log messages based on simulation day
+        function generateLogMessage() {
+            const day = simulationData.day;
+            const messages = [
+                // Implementation milestones
+                { day: 1, message: "AR agents deployed in shadow mode. Analyzing historical invoice data." },
+                { day: 5, message: "Billing Agent completes training on company invoice templates and policies." },
+                { day: 10, message: "Collections Agent begins sending automated payment reminders for new invoices." },
+                { day: 15, message: "First successful automatic reconciliation of payments without human intervention." },
+                { day: 20, message: "AR Orchestrator Agent now coordinating workflow across all specialized agents." },
+                { day: 25, message: "Dispute management agent resolves first complex billing dispute autonomously." },
+                { day: 30, message: "Risk & Compliance Agent identifies pattern of late payments in healthcare sector." },
+                { day: 40, message: "AR Reporting Agent generates first predictive cash flow forecast." },
+                { day: 50, message: "System now handling 65% of all AR processes with minimal human oversight." },
+                { day: 60, message: "Machine learning models retrained based on 60 days of operation data." },
+                { day: 75, message: "System now handling 85% of all AR processes autonomously." },
+                { day: 90, message: "Full implementation complete. DSO reduced by 30% from baseline." },
+                
+                // Random events that could occur on any day
+                { day: -1, message: "New client onboarded with custom payment terms. Agents adapting collection strategy." },
+                { day: -1, message: "Large payment batch received. Reconciliation Agent processing transactions." },
+                { day: -1, message: "Invoice dispute detected. Analyzing contract terms to determine validity." },
+                { day: -1, message: "Payment forecast updated based on recent collection trends." },
+                { day: -1, message: "Automated credit approval completed for customer requesting extended terms." },
+                { day: -1, message: "System detected potential duplicate invoice. Prevented billing error." },
+                { day: -1, message: "Collections strategy optimized based on payment behavior patterns." },
+                { day: -1, message: "Automated dunning notices sent to 28 overdue accounts." },
+                { day: -1, message: "Compliance check completed for new international client invoices." },
+                { day: -1, message: "Reconciliation of complex partial payment completed successfully." }
+            ];
+            
+            // First check for day-specific messages
+            const daySpecificMessages = messages.filter(m => m.day === day);
+            if (daySpecificMessages.length > 0) {
+                return daySpecificMessages[0].message;
+            }
+            
+            // If no day-specific message, use a random general message (day = -1)
+            const randomMessages = messages.filter(m => m.day === -1);
+            const randomIndex = Math.floor(Math.random() * randomMessages.length);
+            return randomMessages[randomIndex].message;
+        }
+        
+        // Advance simulation by one day
+        function advanceSimulation() {
+            if (!simulationData.running) return;
+            
+            simulationData.day++;
+            
+            // Update data for new day
+            updateSimulationData();
+            updateUI();
+            updateChart();
+            
+            // Add log entry
+            if (simulationData.day % 5 === 0 || simulationData.day === 1) {
+                addLogEntry(generateLogMessage());
+            }
+            
+            // Stop at day 90
+            if (simulationData.day >= 90) {
+                simulationData.running = false;
+                startBtn.textContent = "Restart Simulation";
+                addLogEntry("Simulation complete. Full 90-day implementation cycle finished.");
+                return;
+            }
+            
+            // Schedule next update based on speed
+            const delay = 1000 / simulationData.speed;
+            setTimeout(advanceSimulation, delay);
+        }
+        
+        // Event listeners
+        startBtn.addEventListener('click', function() {
+            if (simulationData.running) {
+                // Pause simulation
+                simulationData.running = false;
+                startBtn.textContent = "Resume Simulation";
+            } else {
+                // Start or resume simulation
+                if (simulationData.day >= 90) {
+                    // If simulation completed, restart
+                    initSimulation();
+                }
+                
+                simulationData.running = true;
+                startBtn.textContent = "Pause Simulation";
+                advanceSimulation();
+            }
+        });
+        
+        resetBtn.addEventListener('click', function() {
+            simulationData.running = false;
+            startBtn.textContent = "Start Simulation";
+            initSimulation();
+        });
+        
+        speedControl.addEventListener('input', function() {
+            simulationData.speed = parseInt(this.value);
+        });
+        
+        // Initialize the simulation
+        initSimulation();
+    </script>
+</body>
+</html>

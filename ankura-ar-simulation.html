@@ -1971,6 +1971,7 @@
             <div class="tab" data-tab="activity">Activity Log</div>
             <div class="tab" data-tab="invoices">Invoices</div>
             <div class="tab" data-tab="implementation">Implementation</div>
+            <div class="tab" data-tab="simulations">Modular Simulations</div>
         </div>
         
         <!-- Dashboard Tab -->
@@ -4978,6 +4979,197 @@
                 }
             });
         }
+    </script>
+    
+    <!-- Add modular simulations tab content -->
+    <script>
+        // Add simulations tab content
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create the simulations tab content
+            const simulationsContent = document.createElement('div');
+            simulationsContent.className = 'tab-content';
+            simulationsContent.id = 'simulations-content';
+            
+            // Populate simulations content
+            simulationsContent.innerHTML = `
+                <h2 class="section-title">Modular AR Simulation Components</h2>
+                <p class="section-description">Explore specialized simulations focusing on different aspects of the AR process.</p>
+                
+                <div class="simulations-grid">
+                    <div class="simulation-card">
+                        <div class="simulation-header">
+                            <div class="simulation-icon">🔄</div>
+                            <h3>Agent Network Visualization</h3>
+                        </div>
+                        <div class="simulation-description">
+                            <p>Visualize how specialized AI agents collaborate to process accounts receivable workflows with detailed agent profiles and interaction patterns.</p>
+                        </div>
+                        <div class="simulation-actions">
+                            <a href="ar-agents-simulation.html" class="sim-button">Open Simulation</a>
+                        </div>
+                    </div>
+                    
+                    <div class="simulation-card">
+                        <div class="simulation-header">
+                            <div class="simulation-icon">📊</div>
+                            <h3>Basic Metrics Simulation</h3>
+                        </div>
+                        <div class="simulation-description">
+                            <p>A simple simulation demonstrating key AR metrics improvements over time, including DSO reduction and collection rate increases.</p>
+                        </div>
+                        <div class="simulation-actions">
+                            <a href="ar-basic-sim.html" class="sim-button">Open Simulation</a>
+                        </div>
+                    </div>
+                    
+                    <div class="simulation-card">
+                        <div class="simulation-header">
+                            <div class="simulation-icon">📈</div>
+                            <h3>Detailed Analytics Dashboard</h3>
+                        </div>
+                        <div class="simulation-description">
+                            <p>A comprehensive metrics dashboard showing detailed before/after analytics on how AI agents improve accounts receivable processes.</p>
+                        </div>
+                        <div class="simulation-actions">
+                            <a href="ar-metrics-sim.html" class="sim-button">Open Simulation</a>
+                        </div>
+                    </div>
+                    
+                    <div class="simulation-card">
+                        <div class="simulation-header">
+                            <div class="simulation-icon">⚙️</div>
+                            <h3>AR Process Workflow</h3>
+                        </div>
+                        <div class="simulation-description">
+                            <p>Visualize the step-by-step workflow of how agents process invoices through different scenarios, including standard processing, late payment collection, and dispute resolution.</p>
+                        </div>
+                        <div class="simulation-actions">
+                            <a href="ar-workflow-sim.html" class="sim-button">Open Simulation</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Add the content to the page
+            document.querySelector('.container').appendChild(simulationsContent);
+            
+            // Add click handler to show the simulations tab
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Hide all content
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.style.display = 'none';
+                    });
+                    
+                    // Remove active class from all tabs
+                    document.querySelectorAll('.tab').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+                    
+                    // Show corresponding content
+                    const tabId = this.getAttribute('data-tab');
+                    const content = document.getElementById(tabId + '-content');
+                    if (content) {
+                        content.style.display = 'block';
+                    }
+                });
+            });
+            
+            // Add CSS for the simulations tab
+            const style = document.createElement('style');
+            style.textContent = `
+                .simulations-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                    gap: 20px;
+                    margin-top: 30px;
+                }
+                
+                .simulation-card {
+                    background-color: white;
+                    border-radius: var(--border-radius);
+                    box-shadow: var(--box-shadow);
+                    overflow: hidden;
+                    transition: var(--transition);
+                }
+                
+                .simulation-card:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+                }
+                
+                .simulation-header {
+                    padding: 20px;
+                    display: flex;
+                    align-items: center;
+                    background-color: var(--light);
+                }
+                
+                .simulation-icon {
+                    font-size: 24px;
+                    margin-right: 15px;
+                    color: var(--primary);
+                }
+                
+                .simulation-header h3 {
+                    margin: 0;
+                    font-size: 1.2rem;
+                    color: var(--primary);
+                }
+                
+                .simulation-description {
+                    padding: 20px;
+                }
+                
+                .simulation-description p {
+                    margin: 0;
+                    color: var(--gray);
+                    line-height: 1.5;
+                }
+                
+                .simulation-actions {
+                    padding: 0 20px 20px 20px;
+                    text-align: right;
+                }
+                
+                .sim-button {
+                    display: inline-block;
+                    padding: 8px 16px;
+                    background-color: var(--highlight);
+                    color: white;
+                    text-decoration: none;
+                    border-radius: var(--border-radius);
+                    font-weight: 500;
+                    transition: var(--transition);
+                }
+                
+                .sim-button:hover {
+                    background-color: var(--primary);
+                }
+                
+                .section-title {
+                    font-size: 1.8rem;
+                    margin-bottom: 10px;
+                    color: var(--primary);
+                }
+                
+                .section-description {
+                    color: var(--gray);
+                    margin-bottom: 20px;
+                    font-size: 1.1rem;
+                }
+                
+                @media (max-width: 768px) {
+                    .simulations-grid {
+                        grid-template-columns: 1fr;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+        });
     </script>
 </body>
 </html>

@@ -1,0 +1,1755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ankura AR Agentic LLM Simulation - Agent Network</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --primary-dark: #1a252f;
+            --highlight: #3498db;
+            --highlight-light: #74b9ff;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --gray: #95a5a6;
+            
+            --billing: #2ecc71;
+            --collections: #e67e22;
+            --reconciliation: #3498db;
+            --dispute: #9b59b6;
+            --risk: #e74c3c;
+            --reporting: #f1c40f;
+            --orchestrator: #34495e;
+            
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .key-benefits {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: flex-start;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: var(--border-radius);
+        }
+
+        .benefit-icon {
+            font-size: 24px;
+            margin-right: 15px;
+        }
+
+        .benefit-text h3 {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .benefit-text p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .tabs {
+            background-color: white;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+        }
+        
+        .tab-nav {
+            display: flex;
+            background-color: var(--light);
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab-link {
+            padding: 15px 25px;
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            position: relative;
+            cursor: pointer;
+            transition: var(--transition);
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab-link.active {
+            color: var(--highlight);
+            border-bottom: 3px solid var(--highlight);
+        }
+        
+        .tab-content {
+            padding: 30px;
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Agent Network Visualization */
+        .agent-network-container {
+            height: 700px;
+            position: relative;
+            background-color: #f8f9fa;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .agent-network {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .agent-node {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+            transform: translate(-50%, -50%);
+        }
+        
+        .agent-node:hover {
+            transform: translate(-50%, -50%) scale(1.05);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+        
+        .agent-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        /* New agent positioning system using percentages for better responsiveness */
+        .node-orchestrator {
+            background-color: var(--orchestrator);
+            top: 50%;
+            left: 50%;
+            width: 140px;
+            height: 140px;
+            z-index: 3;
+        }
+        
+        .node-billing {
+            background-color: var(--billing);
+            top: 25%;
+            left: 20%;
+        }
+        
+        .node-collections {
+            background-color: var(--collections);
+            top: 20%;
+            left: 75%;
+        }
+        
+        .node-reconciliation {
+            background-color: var(--reconciliation);
+            top: 75%;
+            left: 75%;
+        }
+        
+        .node-dispute {
+            background-color: var(--dispute);
+            top: 80%;
+            left: 25%;
+        }
+        
+        .node-risk {
+            background-color: var(--risk);
+            top: 35%;
+            left: 85%;
+        }
+        
+        .node-reporting {
+            background-color: var(--reporting);
+            top: 65%;
+            left: 15%;
+        }
+        
+        .communication-line {
+            position: absolute;
+            background-color: #ddd;
+            height: 2px;
+            transform-origin: 0 0;
+            z-index: 1;
+        }
+        
+        .active-comm {
+            background-color: var(--highlight);
+            height: 3px;
+            box-shadow: 0 0 10px var(--highlight);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        
+        .comm-status {
+            position: absolute;
+            background-color: #fff;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--success);
+            font-size: 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 2;
+        }
+
+        .agent-network-legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            font-size: 14px;
+            z-index: 5;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .legend-orchestrator { background-color: var(--orchestrator); }
+        .legend-billing { background-color: var(--billing); }
+        .legend-collections { background-color: var(--collections); }
+        .legend-reconciliation { background-color: var(--reconciliation); }
+        .legend-dispute { background-color: var(--dispute); }
+        .legend-risk { background-color: var(--risk); }
+        .legend-reporting { background-color: var(--reporting); }
+        
+        /* Agent modal */
+        .agent-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            width: 80%;
+            max-width: 800px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            margin-right: 15px;
+        }
+        
+        .modal-title {
+            flex-grow: 1;
+        }
+        
+        .modal-title h2 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .modal-title p {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray);
+        }
+        
+        .modal-body {
+            padding: 25px;
+        }
+        
+        .modal-section {
+            margin-bottom: 25px;
+        }
+        
+        .modal-section h3 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--primary);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+
+        .modal-section.enhanced {
+            background-color: rgba(52, 152, 219, 0.05);
+            border-left: 4px solid var(--highlight);
+            padding: 15px;
+            border-radius: 4px;
+        }
+        
+        .responsibility-list {
+            list-style: none;
+        }
+        
+        .responsibility-list li {
+            margin-bottom: 10px;
+            position: relative;
+            padding-left: 25px;
+        }
+        
+        .responsibility-list li:before {
+            content: "✓";
+            color: var(--success);
+            position: absolute;
+            left: 0;
+            top: 2px;
+        }
+        
+        .integration-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: var(--border-radius);
+        }
+        
+        .integration-icon {
+            width: 36px;
+            height: 36px;
+            background-color: var(--light);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 18px;
+            color: var(--primary);
+        }
+        
+        .current-task {
+            background-color: var(--light);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+            box-shadow: var(--box-shadow);
+        }
+        
+        .task-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .task-icon {
+            color: var(--primary);
+            font-size: 18px;
+            margin-right: 10px;
+        }
+        
+        .task-progress {
+            width: 100%;
+            height: 8px;
+            background-color: #ddd;
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: var(--success);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .agent-performance {
+            margin-top: 25px;
+        }
+        
+        .performance-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .metric-card {
+            background-color: white;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 10px 0;
+            color: var(--primary);
+        }
+        
+        .metric-label {
+            font-size: 0.85rem;
+            color: var(--gray);
+        }
+        
+        .metric-trend {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+        }
+        
+        .trend-up {
+            color: var(--success);
+        }
+        
+        .trend-down {
+            color: var(--danger);
+        }
+        
+        .trend-icon {
+            margin-right: 5px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .tab-nav {
+                flex-wrap: wrap;
+            }
+            
+            .tab-link {
+                padding: 10px 15px;
+                flex-grow: 1;
+                text-align: center;
+            }
+            
+            .agent-network-container {
+                height: 500px;
+            }
+            
+            .agent-node {
+                width: 90px;
+                height: 90px;
+                font-size: 0.8rem;
+            }
+            
+            .node-orchestrator {
+                width: 110px;
+                height: 110px;
+            }
+            
+            .agent-icon {
+                font-size: 18px;
+            }
+            
+            .modal-content {
+                width: 95%;
+            }
+            
+            .performance-metrics {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Ankura AR Agentic LLM Simulation</h1>
+            <p>Decreasing Days Sales Outstanding with AI-Powered Agents</p>
+            <p>This simulation demonstrates how a specialized team of LLM-powered agentic AI agents can transform accounts receivable processes through intelligent reasoning, goal-oriented actions, and collaborative problem-solving.</p>
+            <div class="key-benefits">
+                <div class="benefit-item">
+                    <div class="benefit-icon">🧠</div>
+                    <div class="benefit-text">
+                        <h3>Superior Reasoning</h3>
+                        <p>Unlike traditional automation, these agents use LLM reasoning to understand context, extract meaning from unstructured data, and make nuanced decisions that previously required human judgment.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">🔄</div>
+                    <div class="benefit-text">
+                        <h3>Collaborative Intelligence</h3>
+                        <p>Agents communicate with each other to share information, delegate tasks, and solve complex problems through multi-agent coordination.</p>
+                    </div>
+                </div>
+                <div class="benefit-item">
+                    <div class="benefit-icon">📈</div>
+                    <div class="benefit-text">
+                        <h3>Continuous Improvement</h3>
+                        <p>The system learns from outcomes, refines its approach, and increases performance over time while providing visibility into its decision-making process.</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <div class="tabs">
+            <div class="tab-nav">
+                <div class="tab-link active" data-tab="agent-network">Agent Network</div>
+                <div class="tab-link" data-tab="implementation">Implementation</div>
+            </div>
+            
+            <div class="tab-content active" id="agent-network-content">
+                <h2>AI Agent Collaborative Network</h2>
+                <p>This visualization demonstrates how specialized AI agents work together to process and manage accounts receivable workflows. Each agent has a specific role and communicates with other agents to coordinate tasks and solve complex problems.</p>
+                
+                <div class="agent-network-container">
+                    <div class="agent-network">
+                        <!-- Agent nodes -->
+                        <div class="agent-node node-orchestrator" data-agent="orchestrator">
+                            <div class="agent-icon">🎯</div>
+                            <div>AR Orchestrator Agent</div>
+                        </div>
+                        
+                        <div class="agent-node node-billing" data-agent="billing">
+                            <div class="agent-icon">📋</div>
+                            <div>Billing Agent</div>
+                        </div>
+                        
+                        <div class="agent-node node-collections" data-agent="collections">
+                            <div class="agent-icon">💰</div>
+                            <div>Collections Agent</div>
+                        </div>
+                        
+                        <div class="agent-node node-reconciliation" data-agent="reconciliation">
+                            <div class="agent-icon">🔄</div>
+                            <div>Reconciliation Agent</div>
+                        </div>
+                        
+                        <div class="agent-node node-dispute" data-agent="dispute">
+                            <div class="agent-icon">⚖️</div>
+                            <div>Dispute Agent</div>
+                        </div>
+                        
+                        <div class="agent-node node-risk" data-agent="risk">
+                            <div class="agent-icon">🔍</div>
+                            <div>Risk & Compliance Agent</div>
+                        </div>
+                        
+                        <div class="agent-node node-reporting" data-agent="reporting">
+                            <div class="agent-icon">📊</div>
+                            <div>AR Reporting Agent</div>
+                        </div>
+                        
+                        <!-- Communication lines will be dynamically generated with JavaScript -->
+                        
+                        <!-- Agent network legend -->
+                        <div class="agent-network-legend">
+                            <div class="legend-item">
+                                <div class="legend-color legend-orchestrator"></div>
+                                <span>Orchestrator</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color legend-billing"></div>
+                                <span>Billing</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color legend-collections"></div>
+                                <span>Collections</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color legend-reconciliation"></div>
+                                <span>Reconciliation</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color legend-dispute"></div>
+                                <span>Dispute</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color legend-risk"></div>
+                                <span>Risk & Compliance</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color legend-reporting"></div>
+                                <span>Reporting</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="implementation-content">
+                <div class="implementation-section">
+                    <h2 class="section-title">Technical Implementation Approach</h2>
+                    <p class="section-description">A practical guide to building and deploying a multi-agent agentic LLM system for accounts receivable in a real-world enterprise environment.</p>
+                
+                    <!-- Architecture Diagram -->
+                    <div class="implementation-subsection">
+                        <h3>System Architecture</h3>
+                        <div class="architecture-diagram">
+                            <!-- Diagram would be created with SVG or an image in real implementation -->
+                            <div class="architecture-placeholder" style="background-color: #f0f5ff; padding: 30px; border-radius: 8px; text-align: center;">
+                                <h4>Multi-Agent AR System Architecture</h4>
+                                <div style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+                                    <div style="background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                        <h5 style="margin-bottom: 10px; color: #34495e;">Enterprise Systems</h5>
+                                        <p>Workday ERP</p>
+                                        <p>Intapp Time</p>
+                                        <p>Document Management</p>
+                                        <p>CRM Systems</p>
+                                    </div>
+                                    <div style="background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                        <h5 style="margin-bottom: 10px; color: #34495e;">Integration Layer</h5>
+                                        <p>API Gateway</p>
+                                        <p>Event Bus</p>
+                                        <p>Data Pipeline</p>
+                                        <p>Security Services</p>
+                                    </div>
+                                    <div style="background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                        <h5 style="margin-bottom: 10px; color: #34495e;">Agent Components</h5>
+                                        <p>LLM Service</p>
+                                        <p>Agent Orchestration</p>
+                                        <p>Knowledge Bases</p>
+                                        <p>Workflow Engine</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <!-- Implementation Roadmap -->
+                    <div class="implementation-subsection">
+                        <h3>Technical Implementation Roadmap</h3>
+                        <div class="implementation-steps">
+                            <div class="step-card">
+                                <div class="step-number">1</div>
+                                <div class="step-content">
+                                    <h4>Data Integration & APIs</h4>
+                                    <p>Build secure API connections to Workday and Intapp systems. Create data pipelines for invoices, payments, client records, and time entries. Implement real-time event streams for critical AR events.</p>
+                                </div>
+                            </div>
+                            <div class="step-card">
+                                <div class="step-number">2</div>
+                                <div class="step-content">
+                                    <h4>LLM Foundation</h4>
+                                    <p>Deploy LLM infrastructure with prompt engineering for financial contexts. Define agent personas and responsibilities. Implement reasoning frameworks for financial decision-making.</p>
+                                </div>
+                            </div>
+                            <div class="step-card">
+                                <div class="step-number">3</div>
+                                <div class="step-content">
+                                    <h4>Knowledge Base & RAG</h4>
+                                    <p>Build specialized knowledge bases for AR processes, financial regulations, and client information. Implement Retrieval Augmented Generation (RAG) for contextual reasoning based on client history, contracts, and payment patterns.</p>
+                                </div>
+                            </div>
+                            <div class="step-card">
+                                <div class="step-number">4</div>
+                                <div class="step-content">
+                                    <h4>Orchestrator & Communication</h4>
+                                    <p>Implement agent orchestration system for task delegation and coordination. Build inter-agent communication protocols and workflow engine to manage process handoffs.</p>
+                                </div>
+                            </div>
+                            <div class="step-card">
+                                <div class="step-number">5</div>
+                                <div class="step-content">
+                                    <h4>Human-in-the-Loop Components</h4>
+                                    <p>Create approval workflows, monitoring dashboards, and intervention points. Implement feedback mechanisms to improve agent performance over time.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <!-- Key Considerations -->
+                    <div class="implementation-subsection">
+                        <h3>Key Implementation Considerations</h3>
+                        <div class="considerations-grid">
+                            <div class="consideration-card">
+                                <h4>Security & Compliance</h4>
+                                <ul>
+                                    <li>End-to-end encryption for all financial data</li>
+                                    <li>Role-based access controls for agent actions</li>
+                                    <li>Audit logging of all system decisions</li>
+                                    <li>Compliance with SOX, GDPR, and financial regulations</li>
+                                </ul>
+                            </div>
+                            <div class="consideration-card">
+                                <h4>Performance & Scaling</h4>
+                                <ul>
+                                    <li>Asynchronous processing for non-critical tasks</li>
+                                    <li>Caching strategies for frequent data access</li>
+                                    <li>Load balancing for LLM inference</li>
+                                    <li>Horizontal scaling for increasing invoice volume</li>
+                                </ul>
+                            </div>
+                            <div class="consideration-card">
+                                <h4>Integration & Compatibility</h4>
+                                <ul>
+                                    <li>Workday API version compatibility</li>
+                                    <li>Intapp data synchronization strategies</li>
+                                    <li>Webhook handling for real-time events</li>
+                                    <li>Error handling and retry mechanisms</li>
+                                </ul>
+                            </div>
+                            <div class="consideration-card">
+                                <h4>Measurement & Improvement</h4>
+                                <ul>
+                                    <li>KPI dashboards for AR performance metrics</li>
+                                    <li>Agent effectiveness scoring</li>
+                                    <li>Continuous learning from human corrections</li>
+                                    <li>A/B testing of collection strategies</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <!-- Phased Deployment -->
+                    <div class="implementation-subsection">
+                        <h3>Phased Deployment Strategy</h3>
+                        <div class="phase-container">
+                            <div class="phase-timeline">
+                                <div class="phase-item">
+                                    <div class="phase-marker">1</div>
+                                    <div class="phase-content">
+                                        <h4>Foundation Phase (2-3 months)</h4>
+                                        <p>Build core infrastructure, integrations, and deploy Billing & Reconciliation agents in shadow mode (observation only).</p>
+                                        <div class="phase-metrics">
+                                            <div class="metric">
+                                                <span class="metric-name">Key Deliverable:</span>
+                                                <span class="metric-value">Working integration with Workday & Intapp</span>
+                                            </div>
+                                            <div class="metric">
+                                                <span class="metric-name">Success Metric:</span>
+                                                <span class="metric-value">99% data accuracy in shadow mode</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="phase-item">
+                                    <div class="phase-marker">2</div>
+                                    <div class="phase-content">
+                                        <h4>Pilot Phase (3-4 months)</h4>
+                                        <p>Activate Billing & Reconciliation agents for selected clients. Deploy Collections agent in shadow mode. Begin training AR Orchestrator.</p>
+                                        <div class="phase-metrics">
+                                            <div class="metric">
+                                                <span class="metric-name">Key Deliverable:</span>
+                                                <span class="metric-value">Automated invoice generation & payment matching</span>
+                                            </div>
+                                            <div class="metric">
+                                                <span class="metric-name">Success Metric:</span>
+                                                <span class="metric-value">15% reduction in invoice processing time</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="phase-item">
+                                    <div class="phase-marker">3</div>
+                                    <div class="phase-content">
+                                        <h4>Expansion Phase (4-6 months)</h4>
+                                        <p>Activate Collections & Dispute agents. Deploy AR Orchestrator for workflow coordination. Implement Risk & Compliance agent.</p>
+                                        <div class="phase-metrics">
+                                            <div class="metric">
+                                                <span class="metric-name">Key Deliverable:</span>
+                                                <span class="metric-value">End-to-end automated AR workflow</span>
+                                            </div>
+                                            <div class="metric">
+                                                <span class="metric-name">Success Metric:</span>
+                                                <span class="metric-value">20% reduction in DSO</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="phase-item">
+                                    <div class="phase-marker">4</div>
+                                    <div class="phase-content">
+                                        <h4>Optimization Phase (Ongoing)</h4>
+                                        <p>Deploy AR Reporting agent with advanced analytics. Refine all agents based on performance data. Expand to all clients.</p>
+                                        <div class="phase-metrics">
+                                            <div class="metric">
+                                                <span class="metric-name">Key Deliverable:</span>
+                                                <span class="metric-value">Predictive AR analytics & full automation</span>
+                                            </div>
+                                            <div class="metric">
+                                                <span class="metric-name">Success Metric:</span>
+                                                <span class="metric-value">30% reduction in DSO, 50% reduction in AR staff time</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                
+                    <!-- Technology Stack -->
+                    <div class="implementation-subsection">
+                        <h3>Technology Stack Recommendations</h3>
+                        <div class="tech-stack-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Component</th>
+                                        <th>Recommended Technologies</th>
+                                        <th>Consideration Criteria</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>LLM Foundation</td>
+                                        <td>OpenAI GPT-4, Anthropic Claude, Azure OpenAI</td>
+                                        <td>Reasoning capabilities, enterprise security, context window size</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Orchestration</td>
+                                        <td>LangChain, AutoGPT, LlamaIndex</td>
+                                        <td>Multi-agent support, workflow capabilities, enterprise readiness</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Integration Layer</td>
+                                        <td>MuleSoft, Azure Logic Apps, AWS Step Functions</td>
+                                        <td>Existing infrastructure, Workday/Intapp connector support</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Vector Database</td>
+                                        <td>Pinecone, Weaviate, Milvus</td>
+                                        <td>Scalability, query performance, enterprise security features</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Monitoring & Analytics</td>
+                                        <td>Datadog, Grafana, Power BI</td>
+                                        <td>Existing tooling, visualization capabilities, alerting features</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                
+                    <!-- ROI Analysis -->
+                    <div class="implementation-subsection">
+                        <h3>ROI Analysis: Mid-Size Enterprise Example</h3>
+                        <div class="roi-container">
+                            <div class="roi-metrics">
+                                <div class="roi-metric-card">
+                                    <h4>Implementation Cost</h4>
+                                    <div class="roi-value">$650,000 - $850,000</div>
+                                    <div class="roi-breakdown">
+                                        <div>Development: $400-500K</div>
+                                        <div>Integration: $150-200K</div>
+                                        <div>LLM API: $100-150K/year</div>
+                                    </div>
+                                </div>
+                                <div class="roi-metric-card">
+                                    <h4>Annual Benefits</h4>
+                                    <div class="roi-value">$1.2M - $1.8M per year</div>
+                                    <div class="roi-breakdown">
+                                        <div>Staff efficiency: $400-600K</div>
+                                        <div>Reduced DSO: $500-800K</div>
+                                        <div>Error reduction: $300-400K</div>
+                                    </div>
+                                </div>
+                                <div class="roi-metric-card highlight">
+                                    <h4>ROI Timeframe</h4>
+                                    <div class="roi-value">8-12 months</div>
+                                    <div class="roi-breakdown">
+                                        <div>Payback period for initial investment</div>
+                                        <div>Ongoing 150-200% annual ROI</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="roi-calculation">
+                                <h4>ROI Calculation Example</h4>
+                                <p>For a mid-size professional services firm with $50M annual revenue:</p>
+                                <ul>
+                                    <li><strong>Current AR metrics:</strong> 45 DSO, 8% late payments, 3% write-offs</li>
+                                    <li><strong>AR team:</strong> 6 FTEs at $85K average salary ($510K total)</li>
+                                    <li><strong>Current working capital tied in AR:</strong> ~$6.2M</li>
+                                </ul>
+                                <p><strong>After Implementation:</strong></p>
+                                <ul>
+                                    <li><strong>Improved AR metrics:</strong> 32 DSO (29% reduction), 4% late payments, 1.5% write-offs</li>
+                                    <li><strong>AR team efficiency:</strong> Same work with 3 FTEs ($255K savings)</li>
+                                    <li><strong>Released working capital:</strong> ~$1.8M</li>
+                                    <li><strong>Cost of capital savings:</strong> ~$144K per year (8% cost of capital)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Agent Modal -->
+        <div class="agent-modal" id="agent-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-icon" id="modal-icon"></div>
+                    <div class="modal-title">
+                        <h2 id="modal-agent-name"></h2>
+                        <p id="modal-agent-role"></p>
+                    </div>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-section enhanced">
+                        <h3>How LLM Reasoning Transforms This Role</h3>
+                        <div id="llm-transformation">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <div class="modal-section">
+                        <h3>Core Responsibilities</h3>
+                        <ul class="responsibility-list" id="agent-responsibilities">
+                            <!-- Will be populated by JavaScript -->
+                        </ul>
+                    </div>
+                    
+                    <div class="modal-section">
+                        <h3>Key Integrations</h3>
+                        <div id="agent-integrations">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <div class="current-task" id="agent-current-task">
+                        <div class="task-header">
+                            <div class="task-icon">⚙️</div>
+                            <h3>Current Task</h3>
+                        </div>
+                        <p id="task-description">Processing invoice #A-12345 for client Acme Corp.</p>
+                        <div class="task-progress">
+                            <div class="progress-bar" style="width: 45%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="agent-performance">
+                        <h3>Performance Metrics</h3>
+                        <div class="performance-metrics">
+                            <div class="metric-card">
+                                <div class="metric-label">Tasks Completed</div>
+                                <div class="metric-value" id="tasks-completed">128</div>
+                                <div class="metric-trend trend-up">
+                                    <span class="trend-icon">↑</span> 12% this month
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">Accuracy Rate</div>
+                                <div class="metric-value" id="accuracy-rate">97.2%</div>
+                                <div class="metric-trend trend-up">
+                                    <span class="trend-icon">↑</span> 2.4% this month
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">Avg. Processing Time</div>
+                                <div class="metric-value" id="processing-time">1.8m</div>
+                                <div class="metric-trend trend-down">
+                                    <span class="trend-icon">↓</span> 15% this month
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Agent data
+        const agentData = {
+            orchestrator: {
+                name: "AR Orchestrator Agent",
+                role: "Oversees all AR processes, ensures efficiency, and handles escalations",
+                icon: "🎯",
+                backgroundColor: "var(--orchestrator)",
+                llmTransformation: `
+                    <p>Unlike a traditional workflow manager, this LLM agent can intelligently:</p>
+                    <ul>
+                        <li><strong>Adapt priorities in real-time</strong> based on cash flow needs, team capacity, and business goals</li>
+                        <li><strong>Understand complex queries in natural language</strong> from finance executives and translate them into actionable insights</li>
+                        <li><strong>Make nuanced escalation decisions</strong> by evaluating multiple factors like client relationship history, payment patterns, and business context</li>
+                    </ul>
+                    <p>This represents a shift from fixed rule-based workflow management to intelligent, context-aware orchestration.</p>
+                `,
+                responsibilities: [
+                    "Monitors cash flow, invoice aging, and collections performance.",
+                    "Delegates tasks to other AR agents based on workload and priorities.",
+                    "Ensures seamless Workday & Intapp integration for real-time AR visibility.",
+                    "Flags and escalates delinquent accounts or risk factors.",
+                    "Generates executive summaries & performance reports for leadership."
+                ],
+                integrations: [
+                    { icon: "🔄", name: "Syncs invoice, payment, and collections data across Workday & Intapp." },
+                    { icon: "🤝", name: "Works closely with the Billing, Collections, and Reconciliation Agents." }
+                ],
+                metrics: {
+                    tasksCompleted: 312,
+                    accuracyRate: "99.1%",
+                    processingTime: "2.3m"
+                }
+            },
+            billing: {
+                name: "Billing & Invoice Processing Agent",
+                role: "Automates invoice generation, validation, and submission",
+                icon: "📋",
+                backgroundColor: "var(--billing)",
+                llmTransformation: `
+                    <p>Traditional billing automation relies on rigid templates and rules. This LLM agent can:</p>
+                    <ul>
+                        <li><strong>Analyze engagement letters and SOWs</strong> in their natural language form to extract billing terms, rates, and special conditions</li>
+                        <li><strong>Apply contextual reasoning</strong> to determine which time entries match which billing guidelines</li>
+                        <li><strong>Draft customized invoice narratives</strong> that align with client preferences and highlight value delivered</li>
+                    </ul>
+                    <p>This enables true billing intelligence rather than just billing automation.</p>
+                `,
+                responsibilities: [
+                    "Extracts billable hours from Intapp, verifies contracts, and creates invoices in Workday.",
+                    "Validates invoices against client agreements, tax rules, and billing policies.",
+                    "Flags errors or missing details before invoice submission.",
+                    "Applies automated late fees, discounts, and credits when applicable."
+                ],
+                integrations: [
+                    { icon: "📊", name: "Pulls billable data from Intapp, generates invoices in Workday." },
+                    { icon: "📤", name: "Sends invoices to Collections Agent for follow-up." }
+                ],
+                metrics: {
+                    tasksCompleted: 528,
+                    accuracyRate: "98.7%",
+                    processingTime: "1.2m"
+                }
+            },
+            collections: {
+                name: "Collections & Dunning Agent",
+                role: "Manages AR collections, sends reminders, and escalates overdue payments",
+                icon: "💰",
+                backgroundColor: "var(--collections)",
+                llmTransformation: `
+                    <p>Traditional collections rely on templated reminders and static schedules. This LLM agent delivers:</p>
+                    <ul>
+                        <li><strong>Personalized communication</strong> that references specific projects, past interactions, and client context</li>
+                        <li><strong>Strategic timing of outreach</strong> based on client payment history, current economic conditions, and relationship value</li>
+                        <li><strong>Intelligent negotiation capabilities</strong> for payment plans that balance cash flow needs with client relationship preservation</li>
+                    </ul>
+                    <p>This transforms collections from a transaction-focused function to a relationship-centered one.</p>
+                `,
+                responsibilities: [
+                    "Tracks invoice due dates & aging categories.",
+                    "Sends automated payment reminders, escalations, and demand letters.",
+                    "Engages with clients to confirm payment commitments.",
+                    "Suggests payment plans or discounts for overdue accounts.",
+                    "Escalates high-risk accounts to legal teams or CFO Agent."
+                ],
+                integrations: [
+                    { icon: "📊", name: "Syncs with Workday for real-time tracking of outstanding invoices." },
+                    { icon: "🔄", name: "Works with Billing Agent for corrections & adjustments." },
+                    { icon: "🚨", name: "Notifies Risk & Compliance Agent for non-payment risks." }
+                ],
+                metrics: {
+                    tasksCompleted: 415,
+                    accuracyRate: "96.8%",
+                    processingTime: "2.7m"
+                }
+            },
+            reconciliation: {
+                name: "Payment Reconciliation & Cash Application Agent",
+                role: "Ensures payments are matched to invoices and reconciles discrepancies",
+                icon: "🔄",
+                backgroundColor: "var(--reconciliation)",
+                llmTransformation: `
+                    <p>Traditional reconciliation struggles with unstructured payment references and partial payments. This LLM agent can:</p>
+                    <ul>
+                        <li><strong>Interpret ambiguous payment references</strong> by analyzing patterns in payment descriptions, amounts, and timing</li>
+                        <li><strong>Reconcile complex payment scenarios</strong> like partial payments across multiple invoices or payments covering invoices and credit notes</li>
+                        <li><strong>Explain reconciliation logic</strong> in natural language, making it easier for AR teams to review and approve</li>
+                    </ul>
+                    <p>This dramatically reduces manual matching and research time for accounting teams.</p>
+                `,
+                responsibilities: [
+                    "Matches incoming payments to outstanding invoices in Workday.",
+                    "Flags overpayments, short payments, or unallocated funds.",
+                    "Automatically suggests adjustments, refunds, or write-offs.",
+                    "Generates daily reconciliation reports."
+                ],
+                integrations: [
+                    { icon: "🏦", name: "Connects with Workday & bank feeds for real-time matching." },
+                    { icon: "🚨", name: "Alerts Collections & Billing Agents for misapplied payments." }
+                ],
+                metrics: {
+                    tasksCompleted: 631,
+                    accuracyRate: "99.3%",
+                    processingTime: "0.8m"
+                }
+            },
+            dispute: {
+                name: "Dispute & Deduction Management Agent",
+                role: "Handles invoice disputes and deductions from payments",
+                icon: "⚖️",
+                backgroundColor: "var(--dispute)",
+                llmTransformation: `
+                    <p>Traditional dispute handling is slow and often depends on human interpretation. This LLM agent can:</p>
+                    <ul>
+                        <li><strong>Extract dispute reasons from client emails</strong> using natural language understanding, even when reasons are implicit</li>
+                        <li><strong>Retrieve relevant documentation</strong> like contracts, SOWs, and time narratives to evaluate the validity of disputes</li>
+                        <li><strong>Propose fair resolutions</strong> based on precedent with similar clients and contractual terms</li>
+                    </ul>
+                    <p>This enables faster dispute resolution while ensuring consistent application of policies.</p>
+                `,
+                responsibilities: [
+                    "Identifies customer disputes related to billing errors or deductions.",
+                    "Categorizes disputes (e.g., wrong rates, duplicate charges, missing time entries).",
+                    "Fetches supporting contract data from Workday.",
+                    "Suggests corrective actions (invoice adjustments, credits, approvals)."
+                ],
+                integrations: [
+                    { icon: "🔄", name: "Syncs with Billing & Collections Agents to resolve disputes." },
+                    { icon: "📊", name: "Flags patterns of frequent disputes for AR Orchestrator Agent." }
+                ],
+                metrics: {
+                    tasksCompleted: 187,
+                    accuracyRate: "94.2%",
+                    processingTime: "4.5m"
+                }
+            },
+            risk: {
+                name: "Risk & Compliance Monitoring Agent",
+                role: "Ensures AR compliance with policies and regulations",
+                icon: "🔍",
+                backgroundColor: "var(--risk)",
+                llmTransformation: `
+                    <p>Traditional compliance relies on periodic reviews and static rules. This LLM agent provides:</p>
+                    <ul>
+                        <li><strong>Continuous, contextual monitoring</strong> that evaluates transactions against ever-changing regulatory requirements</li>
+                        <li><strong>Interpretation of complex regulations</strong> and their specific application to different types of invoices and clients</li>
+                        <li><strong>Proactive risk identification</strong> by recognizing unusual patterns that might indicate future payment issues</li>
+                    </ul>
+                    <p>This shifts compliance from a reactive checkbox exercise to a proactive risk management function.</p>
+                `,
+                responsibilities: [
+                    "Monitors Workday AR transactions for compliance with GAAP, IFRS, SOX.",
+                    "Identifies late payments, high-risk customers, and policy violations.",
+                    "Ensures invoices meet legal, tax, and reporting standards.",
+                    "Notifies AR Orchestrator & CFO of non-compliance risks."
+                ],
+                integrations: [
+                    { icon: "🔄", name: "Works with Collections & Dispute Agents to mitigate risks." },
+                    { icon: "📑", name: "Monitors legal & regulatory changes to update policies." }
+                ],
+                metrics: {
+                    tasksCompleted: 263,
+                    accuracyRate: "99.7%",
+                    processingTime: "3.2m"
+                }
+            },
+            reporting: {
+                name: "AR Reporting & Forecasting Agent",
+                role: "Generates AR reports and forecasts cash flow",
+                icon: "📊",
+                backgroundColor: "var(--reporting)",
+                llmTransformation: `
+                    <p>Traditional reporting offers static views with limited explanations. This LLM agent delivers:</p>
+                    <ul>
+                        <li><strong>Narrative-driven insights</strong> that explain not just what happened but why it happened and what it means</li>
+                        <li><strong>Contextual forecasts</strong> that incorporate multiple variables like seasonality, macroeconomic factors, and client-specific patterns</li>
+                        <li><strong>Answerable reports</strong> that can respond to follow-up questions about the data in natural language</li>
+                    </ul>
+                    <p>This transforms reports from static documents to interactive analytical tools.</p>
+                `,
+                responsibilities: [
+                    "Tracks DSO, aging reports, and collections effectiveness.",
+                    "Predicts future cash flow & overdue accounts using AI models.",
+                    "Provides real-time dashboards for finance teams.",
+                    "Suggests collections strategies based on past payment trends."
+                ],
+                integrations: [
+                    { icon: "📊", name: "Pulls Workday & Intapp financial data for insights." },
+                    { icon: "📣", name: "Shares findings with AR Orchestrator & CFO Agents." }
+                ],
+                metrics: {
+                    tasksCompleted: 215,
+                    accuracyRate: "95.6%",
+                    processingTime: "2.9m"
+                }
+            }
+        };
+
+        // DOM elements
+        const tabs = document.querySelectorAll('.tab-link');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const agentNodes = document.querySelectorAll('.agent-node');
+        const agentModal = document.getElementById('agent-modal');
+        const modalClose = document.querySelector('.modal-close');
+        
+        // Tab functionality
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and contents
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding content
+                tab.classList.add('active');
+                const tabId = tab.getAttribute('data-tab');
+                document.getElementById(`${tabId}-content`).classList.add('active');
+            });
+        });
+        
+        // Communication lines setup
+        function createCommunicationLines() {
+            const network = document.querySelector('.agent-network');
+            const orchestrator = document.querySelector('.node-orchestrator');
+            const allAgents = document.querySelectorAll('.agent-node:not(.node-orchestrator)');
+            
+            // Clear existing lines
+            document.querySelectorAll('.communication-line').forEach(line => line.remove());
+            document.querySelectorAll('.comm-status').forEach(status => status.remove());
+            
+            // Get center points of orchestrator
+            const orchRect = orchestrator.getBoundingClientRect();
+            const networkRect = network.getBoundingClientRect();
+            
+            const orchCenterX = orchRect.left + orchRect.width / 2 - networkRect.left;
+            const orchCenterY = orchRect.top + orchRect.height / 2 - networkRect.top;
+            
+            // Create lines from orchestrator to each agent
+            allAgents.forEach(agent => {
+                const agentRect = agent.getBoundingClientRect();
+                const agentCenterX = agentRect.left + agentRect.width / 2 - networkRect.left;
+                const agentCenterY = agentRect.top + agentRect.height / 2 - networkRect.top;
+                
+                // Calculate distance and angle
+                const dx = agentCenterX - orchCenterX;
+                const dy = agentCenterY - orchCenterY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                
+                // Create line
+                const line = document.createElement('div');
+                line.className = 'communication-line';
+                line.style.width = `${distance}px`;
+                line.style.left = `${orchCenterX}px`;
+                line.style.top = `${orchCenterY}px`;
+                line.style.transform = `rotate(${angle}deg)`;
+                
+                // Randomly decide if this line should be active
+                if (Math.random() > 0.5) {
+                    line.classList.add('active-comm');
+                    
+                    // Add status icon
+                    const statusIcon = document.createElement('div');
+                    statusIcon.className = 'comm-status';
+                    // Position at midpoint of line
+                    statusIcon.style.left = `${orchCenterX + dx/2}px`;
+                    statusIcon.style.top = `${orchCenterY + dy/2}px`;
+                    statusIcon.innerHTML = '✓';
+                    
+                    network.appendChild(statusIcon);
+                }
+                
+                network.appendChild(line);
+            });
+        }
+        
+        // Create communication lines initially and on resize
+        window.addEventListener('load', createCommunicationLines);
+        window.addEventListener('resize', createCommunicationLines);
+        
+        // Agent modal functionality
+        agentNodes.forEach(node => {
+            node.addEventListener('click', () => {
+                const agentType = node.getAttribute('data-agent');
+                const agent = agentData[agentType];
+                
+                // Populate modal content
+                document.getElementById('modal-agent-name').textContent = agent.name;
+                document.getElementById('modal-agent-role').textContent = agent.role;
+                
+                const modalIcon = document.getElementById('modal-icon');
+                modalIcon.textContent = agent.icon;
+                modalIcon.style.backgroundColor = agent.backgroundColor;
+                
+                // Populate LLM transformation section
+                document.getElementById('llm-transformation').innerHTML = agent.llmTransformation;
+                
+                // Populate responsibilities
+                const responsibilitiesElement = document.getElementById('agent-responsibilities');
+                responsibilitiesElement.innerHTML = '';
+                agent.responsibilities.forEach(resp => {
+                    const li = document.createElement('li');
+                    li.textContent = resp;
+                    responsibilitiesElement.appendChild(li);
+                });
+                
+                // Populate integrations
+                const integrationsElement = document.getElementById('agent-integrations');
+                integrationsElement.innerHTML = '';
+                agent.integrations.forEach(int => {
+                    const div = document.createElement('div');
+                    div.className = 'integration-item';
+                    div.innerHTML = `
+                        <div class="integration-icon">${int.icon}</div>
+                        <div>${int.name}</div>
+                    `;
+                    integrationsElement.appendChild(div);
+                });
+                
+                // Random task description based on agent type
+                let taskDescription;
+                switch(agentType) {
+                    case 'billing':
+                        taskDescription = `Generating invoice #INV-${Math.floor(Math.random() * 10000)} for client ${['Acme Corp', 'Globex', 'Initech', 'Massive Dynamic'][Math.floor(Math.random() * 4)]}`;
+                        break;
+                    case 'collections':
+                        taskDescription = `Sending payment reminder for invoice #INV-${Math.floor(Math.random() * 10000)} (${Math.floor(Math.random() * 30) + 5} days overdue)`;
+                        break;
+                    case 'reconciliation':
+                        taskDescription = `Matching payment of $${(Math.random() * 10000).toFixed(2)} from ${['Acme Corp', 'Globex', 'Initech', 'Massive Dynamic'][Math.floor(Math.random() * 4)]}`;
+                        break;
+                    case 'dispute':
+                        taskDescription = `Resolving rate dispute on invoice #INV-${Math.floor(Math.random() * 10000)} from ${['Acme Corp', 'Globex', 'Initech', 'Massive Dynamic'][Math.floor(Math.random() * 4)]}`;
+                        break;
+                    case 'risk':
+                        taskDescription = `Evaluating compliance of payment terms for new client ${['NewCorp', 'TechStart', 'MegaFirm', 'NextGen'][Math.floor(Math.random() * 4)]}`;
+                        break;
+                    case 'reporting':
+                        taskDescription = `Generating Q${Math.floor(Math.random() * 4) + 1} DSO analysis and cash flow projection`;
+                        break;
+                    default:
+                        taskDescription = `Coordinating AR workflow for ${Math.floor(Math.random() * 5) + 3} high-priority clients`;
+                }
+                document.getElementById('task-description').textContent = taskDescription;
+                
+                // Set random progress 
+                document.querySelector('.progress-bar').style.width = `${Math.floor(Math.random() * 90) + 10}%`;
+                
+                // Set metrics
+                document.getElementById('tasks-completed').textContent = agent.metrics.tasksCompleted;
+                document.getElementById('accuracy-rate').textContent = agent.metrics.accuracyRate;
+                document.getElementById('processing-time').textContent = agent.metrics.processingTime;
+                
+                // Show modal
+                agentModal.style.display = 'flex';
+            });
+        });
+        
+        // Close modal
+        modalClose.addEventListener('click', () => {
+            agentModal.style.display = 'none';
+        });
+        
+        // Close modal when clicking outside
+        agentModal.addEventListener('click', (e) => {
+            if (e.target === agentModal) {
+                agentModal.style.display = 'none';
+            }
+        });
+        
+        // Add CSS for implementation tab
+        const style = document.createElement('style');
+        style.textContent = `
+            .implementation-section {
+                background-color: white;
+                border-radius: var(--border-radius);
+                padding: 30px;
+                box-shadow: var(--box-shadow);
+                margin-bottom: 30px;
+            }
+            
+            .section-title {
+                font-size: 1.8rem;
+                margin-bottom: 10px;
+                color: var(--primary);
+            }
+            
+            .section-description {
+                color: var(--gray);
+                margin-bottom: 30px;
+                font-size: 1.1rem;
+            }
+            
+            .implementation-subsection {
+                margin-bottom: 40px;
+            }
+            
+            .implementation-subsection h3 {
+                font-size: 1.4rem;
+                margin-bottom: 20px;
+                color: var(--primary);
+                border-bottom: 1px solid #eee;
+                padding-bottom: 10px;
+            }
+            
+            .implementation-steps {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .step-card {
+                display: flex;
+                background-color: #f8f9fa;
+                border-radius: var(--border-radius);
+                overflow: hidden;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            }
+            
+            .step-number {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: var(--primary);
+                color: white;
+                font-size: 1.5rem;
+                font-weight: bold;
+                padding: 20px;
+                min-width: 60px;
+            }
+            
+            .step-content {
+                padding: 20px;
+                flex-grow: 1;
+            }
+            
+            .step-content h4 {
+                margin-bottom: 10px;
+                color: var(--primary);
+            }
+            
+            .considerations-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 20px;
+            }
+            
+            .consideration-card {
+                background-color: #f8f9fa;
+                padding: 20px;
+                border-radius: var(--border-radius);
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            }
+            
+            .consideration-card h4 {
+                margin-bottom: 15px;
+                color: var(--primary);
+                border-bottom: 1px solid #eee;
+                padding-bottom: 8px;
+            }
+            
+            .consideration-card ul {
+                list-style-type: none;
+            }
+            
+            .consideration-card li {
+                margin-bottom: 8px;
+                position: relative;
+                padding-left: 20px;
+            }
+            
+            .consideration-card li::before {
+                content: "•";
+                color: var(--highlight);
+                position: absolute;
+                left: 0;
+                top: 0;
+                font-size: 1.2em;
+            }
+            
+            .phase-container {
+                background-color: #f8f9fa;
+                border-radius: var(--border-radius);
+                padding: 30px;
+                position: relative;
+            }
+            
+            .phase-timeline {
+                position: relative;
+            }
+            
+            .phase-timeline::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 18px;
+                width: 4px;
+                background-color: var(--primary);
+                border-radius: 2px;
+            }
+            
+            .phase-item {
+                display: flex;
+                margin-bottom: 30px;
+                position: relative;
+            }
+            
+            .phase-marker {
+                width: 40px;
+                height: 40px;
+                background-color: var(--primary);
+                color: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                position: relative;
+                z-index: 2;
+            }
+            
+            .phase-content {
+                margin-left: 20px;
+                background-color: white;
+                border-radius: var(--border-radius);
+                padding: 20px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                flex-grow: 1;
+            }
+            
+            .phase-content h4 {
+                margin-bottom: 10px;
+                color: var(--primary);
+            }
+            
+            .phase-metrics {
+                display: flex;
+                gap: 20px;
+                margin-top: 15px;
+                flex-wrap: wrap;
+            }
+            
+            .metric {
+                background-color: #f8f9fa;
+                padding: 10px 15px;
+                border-radius: var(--border-radius);
+                font-size: 0.9rem;
+            }
+            
+            .metric-name {
+                font-weight: bold;
+                margin-right: 5px;
+                color: var(--primary);
+            }
+            
+            .tech-stack-table {
+                overflow-x: auto;
+            }
+            
+            .tech-stack-table table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            
+            .tech-stack-table th, .tech-stack-table td {
+                text-align: left;
+                padding: 12px 15px;
+                border-bottom: 1px solid #eee;
+            }
+            
+            .tech-stack-table th {
+                background-color: var(--primary);
+                color: white;
+            }
+            
+            .tech-stack-table tr:nth-child(even) {
+                background-color: #f8f9fa;
+            }
+            
+            .roi-container {
+                background-color: #f8f9fa;
+                border-radius: var(--border-radius);
+                padding: 30px;
+            }
+            
+            .roi-metrics {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
+                margin-bottom: 30px;
+            }
+            
+            .roi-metric-card {
+                background-color: white;
+                border-radius: var(--border-radius);
+                padding: 20px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                text-align: center;
+            }
+            
+            .roi-metric-card.highlight {
+                background-color: var(--highlight-light);
+                color: var(--dark);
+            }
+            
+            .roi-metric-card h4 {
+                margin-bottom: 15px;
+                color: var(--primary);
+            }
+            
+            .roi-value {
+                font-size: 1.8rem;
+                font-weight: bold;
+                margin: 15px 0;
+                color: var(--primary);
+            }
+            
+            .roi-breakdown {
+                text-align: left;
+                font-size: 0.9rem;
+                color: var(--gray);
+            }
+            
+            .roi-breakdown div {
+                margin-bottom: 5px;
+            }
+            
+            .roi-calculation {
+                background-color: white;
+                border-radius: var(--border-radius);
+                padding: 20px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            }
+            
+            .roi-calculation h4 {
+                margin-bottom: 15px;
+                color: var(--primary);
+            }
+            
+            .roi-calculation p {
+                margin-bottom: 15px;
+            }
+            
+            .roi-calculation ul {
+                list-style-type: none;
+                margin-bottom: 15px;
+                padding-left: 20px;
+            }
+            
+            .roi-calculation li {
+                margin-bottom: 8px;
+                position: relative;
+                padding-left: 20px;
+            }
+            
+            .roi-calculation li::before {
+                content: "•";
+                color: var(--highlight);
+                position: absolute;
+                left: 0;
+                top: 0;
+                font-size: 1.2em;
+            }
+            
+            /* Responsive adjustments */
+            @media (max-width: 768px) {
+                .implementation-section {
+                    padding: 20px;
+                }
+                
+                .roi-metrics {
+                    grid-template-columns: 1fr;
+                }
+                
+                .considerations-grid {
+                    grid-template-columns: 1fr;
+                }
+                
+                .step-number {
+                    padding: 15px;
+                    min-width: 50px;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
